@@ -595,6 +595,7 @@ impl Action {
 }
 
 /// Resolves key events to actions based on configuration
+#[derive(Clone)]
 pub struct KeybindingResolver {
     /// Map from context to key bindings
     /// Context-specific bindings have priority over normal bindings

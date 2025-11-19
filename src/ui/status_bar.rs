@@ -32,6 +32,7 @@ impl StatusBarRenderer {
         lsp_status: &str,
         theme: &crate::theme::Theme,
         display_name: &str,
+        keybindings: &crate::keybindings::KeybindingResolver,
     ) {
         Self::render_status(
             frame,
@@ -41,6 +42,7 @@ impl StatusBarRenderer {
             lsp_status,
             theme,
             display_name,
+            keybindings,
         );
     }
 
@@ -103,6 +105,7 @@ impl StatusBarRenderer {
         lsp_status: &str,
         theme: &crate::theme::Theme,
         display_name: &str,
+        keybindings: &crate::keybindings::KeybindingResolver,
     ) {
         // Use the pre-computed display name from buffer metadata
         let filename = display_name;
@@ -184,22 +187,23 @@ impl StatusBarRenderer {
             format!("{filename}{modified} | Ln {line}, Col {col}{diagnostics_summary}{cursor_count_indicator}{lsp_indicator}")
         };
 
-        // Build help indicator for right side
-        // Use Ctrl+/ or ⌘+/ depending on platform
-        // Always show help indicator on the right side
-        let help_shortcut = format_keybinding(&KeyCode::Char('/'), &KeyModifiers::CONTROL);
-        let help_indicator = format!("Help: {}", help_shortcut);
-        let padded_help = format!(" {} ", help_indicator);
+        // Build Command Palette indicator for right side
+        // Always show Command Palette indicator on the right side
+        let cmd_palette_shortcut = keybindings
+            .get_keybinding_for_action(&crate::keybindings::Action::CommandPalette, crate::keybindings::KeyContext::Global)
+            .unwrap_or_else(|| "?".to_string());
+        let cmd_palette_indicator = format!("Palette: {}", cmd_palette_shortcut);
+        let padded_cmd_palette = format!(" {} ", cmd_palette_indicator);
 
-        // Calculate available width - always reserve space for help indicator
+        // Calculate available width - always reserve space for command palette indicator
         let available_width = area.width as usize;
-        let help_width = padded_help.len();
+        let cmd_palette_width = padded_cmd_palette.len();
 
-        // Only show help indicator if there's enough space (at least 15 chars for minimal display)
+        // Only show command palette indicator if there's enough space (at least 15 chars for minimal display)
         let spans = if available_width >= 15 {
-            // Reserve space for help indicator
-            let left_max_width = if available_width > help_width + 1 {
-                available_width - help_width - 1 // -1 for at least one space separator
+            // Reserve space for command palette indicator
+            let left_max_width = if available_width > cmd_palette_width + 1 {
+                available_width - cmd_palette_width - 1 // -1 for at least one space separator
             } else {
                 1 // Minimal space
             };
@@ -227,9 +231,9 @@ impl StatusBarRenderer {
 
             let displayed_left_len = displayed_left.len();
 
-            // Add spacing to push help indicator to the right
-            if displayed_left_len + help_width < available_width {
-                let padding_len = available_width - displayed_left_len - help_width;
+            // Add spacing to push command palette indicator to the right
+            if displayed_left_len + cmd_palette_width < available_width {
+                let padding_len = available_width - displayed_left_len - cmd_palette_width;
                 spans.push(Span::styled(
                     " ".repeat(padding_len),
                     Style::default()
@@ -246,9 +250,9 @@ impl StatusBarRenderer {
                 ));
             }
 
-            // Add help indicator with distinct styling and padding
+            // Add command palette indicator with distinct styling and padding
             spans.push(Span::styled(
-                padded_help.clone(),
+                padded_cmd_palette.clone(),
                 Style::default()
                     .fg(theme.help_indicator_fg)
                     .bg(theme.help_indicator_bg),
@@ -256,14 +260,14 @@ impl StatusBarRenderer {
 
             // Calculate total width covered by spans
             let total_width = displayed_left_len
-                + if displayed_left_len + help_width < available_width {
-                    available_width - displayed_left_len - help_width
+                + if displayed_left_len + cmd_palette_width < available_width {
+                    available_width - displayed_left_len - cmd_palette_width
                 } else if displayed_left_len < available_width {
                     1
                 } else {
                     0
                 }
-                + help_width;
+                + cmd_palette_width;
 
             // Add final padding to fill exactly to area width if needed
             if total_width < available_width {
@@ -277,7 +281,7 @@ impl StatusBarRenderer {
 
             spans
         } else {
-            // Terminal too narrow or no help indicator - fill entire width with left status
+            // Terminal too narrow or no command palette indicator - fill entire width with left status
             let mut spans = vec![];
             let displayed_left = if left_status.len() > available_width {
                 let truncate_at = available_width.saturating_sub(3);

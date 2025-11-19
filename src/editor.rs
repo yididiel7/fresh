@@ -9018,16 +9018,18 @@ impl Editor {
         let prompt = self.prompt.clone();
         let lsp_status = self.lsp_status.clone();
         let theme = self.theme.clone();
+        let keybindings_cloned = self.keybindings.clone(); // Clone the keybindings
 
         // Always render status bar
         StatusBarRenderer::render_status_bar(
             frame,
             main_chunks[status_bar_idx],
-            self.active_state_mut(),
+            self.active_state_mut(), // Use the mutable reference
             &status_message,
             &lsp_status,
             &theme,
             &display_name,
+            &keybindings_cloned, // Pass the cloned keybindings
         );
 
         // Render prompt line if active
