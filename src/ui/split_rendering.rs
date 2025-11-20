@@ -729,6 +729,7 @@ impl SplitRenderer {
         let mut cursor_screen_x = 0u16;
         let mut cursor_screen_y = 0u16;
         let mut cursor_found = false;
+        let mut view_to_screen: HashMap<usize, (u16, u16)> = HashMap::new();
 
         loop {
             let (line_view_offset, line_content, line_has_newline) =
@@ -760,6 +761,7 @@ impl SplitRenderer {
 
             // Build line with selection highlighting
             let mut line_spans = Vec::new();
+            let mut content_view_map: Vec<Option<usize>> = Vec::new();
 
             // Render left margin (indicators + line numbers + separator)
             if state.margins.left_config.enabled {
@@ -1073,7 +1075,11 @@ impl SplitRenderer {
                             {
                                 // Add spacing: "hint_text " before the character
                                 let text_with_space = format!("{} ", vtext.text);
-                                line_spans.push(Span::styled(text_with_space, vtext.style));
+                                line_spans
+                                    .push(Span::styled(text_with_space.clone(), vtext.style));
+                                for _ in text_with_space.chars() {
+                                    content_view_map.push(None);
+                                }
                             }
                         }
                     }
@@ -1088,6 +1094,9 @@ impl SplitRenderer {
                             );
                         }
                         line_spans.push(Span::styled(display_char.to_string(), style));
+                        for _ in display_char.chars() {
+                            content_view_map.push(Some(view_idx));
+                        }
                     }
 
                     // Check for AfterChar virtual texts at this position
@@ -1099,7 +1108,11 @@ impl SplitRenderer {
                             {
                                 // Add spacing: " hint_text" after the character
                                 let text_with_space = format!(" {}", vtext.text);
-                                line_spans.push(Span::styled(text_with_space, vtext.style));
+                                line_spans
+                                    .push(Span::styled(text_with_space.clone(), vtext.style));
+                                for _ in text_with_space.chars() {
+                                    content_view_map.push(None);
+                                }
                             }
                         }
                     }
@@ -1186,6 +1199,7 @@ impl SplitRenderer {
                                 .bg(theme.inactive_cursor)
                         };
                         line_spans.push(Span::styled(" ", cursor_style));
+                        content_view_map.push(None);
                     }
                     // Primary cursor at end of line will be shown by terminal hardware cursor (active split only)
                 }
@@ -1219,6 +1233,7 @@ impl SplitRenderer {
 
                 // Extract text from content spans only (not gutter) for wrapping
                 let line_text: String = content_spans.iter().map(|s| s.content.as_ref()).collect();
+                let line_view_map = content_view_map.clone();
 
                 // Wrap the line using the clean transformation
                 let segments = wrap_line(&line_text, &config);
@@ -1303,6 +1318,20 @@ impl SplitRenderer {
                         if !line_wrap { left_col } else { 0 },
                     );
                     segment_spans.extend(styled_spans);
+
+                    // Record view->screen mapping for visible characters in this segment
+                    let current_y = lines.len() as u16;
+                    for (i, ch) in segment_text.chars().enumerate() {
+                        if ch == '\n' {
+                            continue;
+                        }
+                        if let Some(Some(view_idx)) =
+                            line_view_map.get(segment.start_char_offset + i)
+                        {
+                            let screen_x = gutter_width as u16 + i as u16;
+                            view_to_screen.entry(*view_idx).or_insert((screen_x, current_y));
+                        }
+                    }
 
                     lines.push(Line::from(segment_spans));
                     lines_rendered += 1;
@@ -1398,27 +1427,15 @@ impl SplitRenderer {
             };
         }
 
-        // Fallback: if we still did not map the cursor, approximate using view indices
+        // Fallback: if we still did not map the cursor during rendering, use view->screen map
         if !cursor_found {
-            if let Some(view_idx) = source_to_view.get(&state.cursors.primary().position) {
-                let mut y = 0u16;
-                for (idx, (offset, text, _)) in view_lines.iter().enumerate() {
-                    if idx < view_start_line_idx {
-                        continue;
-                    }
-                    let len = text.chars().count();
-                    if *view_idx >= *offset && *view_idx <= *offset + len {
-                        let skip = if idx == view_start_line_idx {
-                            view_start_line_skip
-                        } else {
-                            0
-                        };
-                        cursor_screen_x =
-                            view_idx.saturating_sub(*offset).saturating_sub(skip) as u16;
-                        cursor_screen_y = y;
-                        break;
-                    }
-                    y = y.saturating_add(1);
+            if let Some(pos) = view_to_screen.get(&primary_cursor_position) {
+                cursor_screen_x = pos.0;
+                cursor_screen_y = pos.1;
+            } else if let Some(view_idx) = source_to_view.get(&state.cursors.primary().position) {
+                if let Some(pos) = view_to_screen.get(view_idx) {
+                    cursor_screen_x = pos.0;
+                    cursor_screen_y = pos.1;
                 }
             }
         }
