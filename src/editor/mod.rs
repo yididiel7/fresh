@@ -2144,6 +2144,51 @@ impl Editor {
         ));
     }
 
+    /// Compute the default directory text for the Open File prompt
+    fn open_file_prompt_directory_hint(&self) -> String {
+        let mut directory = self
+            .active_state()
+            .buffer
+            .file_path()
+            .and_then(|path| path.parent())
+            .map(|parent| {
+                parent
+                    .strip_prefix(&self.working_dir)
+                    .map(|relative| relative.to_string_lossy().to_string())
+                    .unwrap_or_else(|_| parent.to_string_lossy().to_string())
+            })
+            .unwrap_or_default();
+
+        if directory.is_empty() {
+            directory = "./".into();
+        } else if !directory.ends_with('/') {
+            directory.push('/');
+        }
+
+        directory
+    }
+
+    /// Pre-fill the Open File prompt input with the current buffer directory
+    fn prefill_open_file_prompt(&mut self) {
+        let initial_text = self.open_file_prompt_directory_hint();
+        let needs_update = if let Some(prompt) = self.prompt.as_mut() {
+            if prompt.prompt_type == PromptType::OpenFile {
+                prompt.input = initial_text.clone();
+                prompt.cursor_pos = initial_text.len();
+                prompt.selection_anchor = None;
+                true
+            } else {
+                false
+            }
+        } else {
+            false
+        };
+
+        if needs_update {
+            self.update_prompt_suggestions();
+        }
+    }
+
     /// Cancel the current prompt and return to normal mode
     pub fn cancel_prompt(&mut self) {
         // Determine prompt type and reset appropriate history navigation

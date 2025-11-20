@@ -506,7 +506,10 @@ impl Editor {
                     current_path,
                 );
             }
-            Action::Open => self.start_prompt("Open file: ".to_string(), PromptType::OpenFile),
+            Action::Open => {
+                self.start_prompt("Open file: ".to_string(), PromptType::OpenFile);
+                self.prefill_open_file_prompt();
+            }
             Action::GotoLine => self.start_prompt("Go to line: ".to_string(), PromptType::GotoLine),
             Action::New => {
                 self.new_buffer();
