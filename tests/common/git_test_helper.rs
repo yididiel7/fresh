@@ -295,9 +295,8 @@ A sample project for testing.
         // Copy git_log.ts plugin
         let git_log_src = project_root.join("plugins/git_log.ts");
         let git_log_dst = plugins_dir.join("git_log.ts");
-        fs::copy(&git_log_src, &git_log_dst).unwrap_or_else(|e| {
-            panic!("Failed to copy git_log.ts from {:?}: {}", git_log_src, e)
-        });
+        fs::copy(&git_log_src, &git_log_dst)
+            .unwrap_or_else(|e| panic!("Failed to copy git_log.ts from {:?}: {}", git_log_src, e));
     }
 }
 

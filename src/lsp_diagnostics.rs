@@ -164,14 +164,9 @@ pub fn apply_diagnostics_to_state(
         {
             let message = diagnostic.message.clone();
 
-            let overlay = Overlay::with_namespace(
-                &mut state.marker_list,
-                range,
-                face,
-                ns.clone(),
-            )
-            .with_priority_value(priority)
-            .with_message(message);
+            let overlay = Overlay::with_namespace(&mut state.marker_list, range, face, ns.clone())
+                .with_priority_value(priority)
+                .with_message(message);
 
             state.overlays.add(overlay);
             added_count += 1;
@@ -179,10 +174,7 @@ pub fn apply_diagnostics_to_state(
     }
 
     if added_count > 0 {
-        tracing::debug!(
-            "Applied {} diagnostic overlays",
-            added_count
-        );
+        tracing::debug!("Applied {} diagnostic overlays", added_count);
     }
 }
 

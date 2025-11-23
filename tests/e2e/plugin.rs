@@ -996,19 +996,14 @@ editor.setStatus("Multi-action plugin loaded");
 
         // Wait for the action to complete (async processing)
         let found = harness
-            .wait_for_async(
-                |h| h.screen_to_string().contains(expected_status),
-                2000,
-            )
+            .wait_for_async(|h| h.screen_to_string().contains(expected_status), 2000)
             .unwrap();
 
         let screen = harness.screen_to_string();
         assert!(
             found,
             "Expected status '{}' after executing '{}' within timeout. Got:\n{}",
-            expected_status,
-            action_name,
-            screen
+            expected_status, action_name, screen
         );
     }
 }
@@ -1764,13 +1759,9 @@ fn test_clangd_plugin_file_status_notification() -> std::io::Result<()> {
         },
     );
 
-    let mut harness = EditorTestHarness::with_config_and_working_dir(
-        120,
-        30,
-        config,
-        project_root.clone(),
-    )
-    .unwrap();
+    let mut harness =
+        EditorTestHarness::with_config_and_working_dir(120, 30, config, project_root.clone())
+            .unwrap();
 
     harness.open_file(&source_file)?;
     harness.render()?;

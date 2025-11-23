@@ -742,7 +742,8 @@ fn test_command_palette_shortcuts_alignment() {
 
     // Check that we see some keyboard shortcut indicators
     // Ctrl, Alt, or Shift should appear somewhere indicating shortcuts are shown
-    let has_shortcuts = screen.contains("Ctrl") || screen.contains("Alt") || screen.contains("Shift");
+    let has_shortcuts =
+        screen.contains("Ctrl") || screen.contains("Alt") || screen.contains("Shift");
     assert!(
         has_shortcuts,
         "Command palette should display keyboard shortcuts. Screen:\n{}",

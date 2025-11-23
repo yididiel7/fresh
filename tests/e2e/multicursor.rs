@@ -873,7 +873,10 @@ fn test_cursor_visible_on_initial_empty_buffer() {
     let gutter_width = harness.editor().active_state().margins.left_total_width();
     println!("Gutter width: {}", gutter_width);
     println!("Cursor screen position: ({}, {})", x, y);
-    println!("Margins enabled: {}", harness.editor().active_state().margins.left_config.enabled);
+    println!(
+        "Margins enabled: {}",
+        harness.editor().active_state().margins.left_config.enabled
+    );
     assert!(
         *x >= gutter_width as u16,
         "Cursor x position ({}) must be >= gutter width ({}) - cursor should not be in gutter area",
@@ -898,7 +901,9 @@ fn test_ctrl_end_cursor_position() {
         println!("  Gutter width: {}", gutter_width);
 
         // Press Ctrl+End to jump to end of buffer
-        harness.send_key(KeyCode::End, KeyModifiers::CONTROL).unwrap();
+        harness
+            .send_key(KeyCode::End, KeyModifiers::CONTROL)
+            .unwrap();
         harness.render().unwrap();
 
         let (cursor_x, _cursor_y) = harness.screen_cursor_position();
@@ -923,11 +928,16 @@ fn test_ctrl_end_cursor_position() {
         println!("  Gutter width: {}", gutter_width);
 
         // Press Ctrl+End to jump to end of buffer
-        harness.send_key(KeyCode::End, KeyModifiers::CONTROL).unwrap();
+        harness
+            .send_key(KeyCode::End, KeyModifiers::CONTROL)
+            .unwrap();
         harness.render().unwrap();
 
         let (cursor_x, cursor_y) = harness.screen_cursor_position();
-        println!("  Cursor position after Ctrl+End: ({}, {})", cursor_x, cursor_y);
+        println!(
+            "  Cursor position after Ctrl+End: ({}, {})",
+            cursor_x, cursor_y
+        );
         assert!(
             cursor_x >= gutter_width as u16,
             "Trailing newline: Cursor x ({}) should be >= gutter width ({})",
@@ -963,7 +973,9 @@ fn test_ctrl_end_cursor_position() {
         println!("  Gutter width: {}", gutter_width);
 
         // Press Ctrl+End to jump to end of buffer
-        harness.send_key(KeyCode::End, KeyModifiers::CONTROL).unwrap();
+        harness
+            .send_key(KeyCode::End, KeyModifiers::CONTROL)
+            .unwrap();
         harness.render().unwrap();
 
         let (cursor_x, _cursor_y) = harness.screen_cursor_position();
@@ -987,7 +999,9 @@ fn test_ctrl_end_cursor_position() {
         println!("  Gutter width: {}", gutter_width);
 
         // Press Ctrl+End to jump to end of buffer
-        harness.send_key(KeyCode::End, KeyModifiers::CONTROL).unwrap();
+        harness
+            .send_key(KeyCode::End, KeyModifiers::CONTROL)
+            .unwrap();
         harness.render().unwrap();
 
         let (cursor_x, _cursor_y) = harness.screen_cursor_position();
@@ -1001,11 +1015,9 @@ fn test_ctrl_end_cursor_position() {
             gutter_width
         );
         assert_eq!(
-            cursor_x,
-            expected_x,
+            cursor_x, expected_x,
             "No trailing newline: Cursor x ({}) should be at end of 'hello' ({})",
-            cursor_x,
-            expected_x
+            cursor_x, expected_x
         );
     }
 }

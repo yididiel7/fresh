@@ -122,7 +122,10 @@ fn setup_git_merge_conflict(project_root: &std::path::Path) -> std::path::PathBu
         .current_dir(project_root)
         .output()
         .expect("git init failed");
-    eprintln!("git init: {:?}", String::from_utf8_lossy(&init_output.stderr));
+    eprintln!(
+        "git init: {:?}",
+        String::from_utf8_lossy(&init_output.stderr)
+    );
 
     // Configure git user for commits and disable signing
     Command::new("git")
@@ -174,7 +177,10 @@ fn setup_git_merge_conflict(project_root: &std::path::Path) -> std::path::PathBu
         .current_dir(project_root)
         .output()
         .expect("git branch failed");
-    eprintln!("Current branch in feature: {:?}", String::from_utf8_lossy(&branch_output.stdout));
+    eprintln!(
+        "Current branch in feature: {:?}",
+        String::from_utf8_lossy(&branch_output.stdout)
+    );
 
     // Go back to the initial branch (try master first, then main)
     let checkout_master = Command::new("git")
@@ -198,7 +204,10 @@ fn setup_git_merge_conflict(project_root: &std::path::Path) -> std::path::PathBu
         .current_dir(project_root)
         .output()
         .expect("git commit failed");
-    eprintln!("commit on main: {:?}", String::from_utf8_lossy(&commit_output.stderr));
+    eprintln!(
+        "commit on main: {:?}",
+        String::from_utf8_lossy(&commit_output.stderr)
+    );
 
     // Try to merge - this MUST fail with conflict since we modified the same line
     let merge_output = Command::new("git")
@@ -208,8 +217,14 @@ fn setup_git_merge_conflict(project_root: &std::path::Path) -> std::path::PathBu
         .expect("git merge failed");
 
     eprintln!("Git merge exit code: {}", merge_output.status);
-    eprintln!("Git merge stdout: {:?}", String::from_utf8_lossy(&merge_output.stdout));
-    eprintln!("Git merge stderr: {:?}", String::from_utf8_lossy(&merge_output.stderr));
+    eprintln!(
+        "Git merge stdout: {:?}",
+        String::from_utf8_lossy(&merge_output.stdout)
+    );
+    eprintln!(
+        "Git merge stderr: {:?}",
+        String::from_utf8_lossy(&merge_output.stderr)
+    );
 
     // Verify the file has conflict markers
     let content = fs::read_to_string(&conflict_file).unwrap();
@@ -221,7 +236,10 @@ fn setup_git_merge_conflict(project_root: &std::path::Path) -> std::path::PathBu
         .current_dir(project_root)
         .output()
         .expect("git ls-files failed");
-    eprintln!("git ls-files -u output: {:?}", String::from_utf8_lossy(&ls_files.stdout));
+    eprintln!(
+        "git ls-files -u output: {:?}",
+        String::from_utf8_lossy(&ls_files.stdout)
+    );
 
     assert!(
         content.contains("<<<<<<<"),
@@ -260,9 +278,13 @@ fn test_merge_start_resolution_command() {
     eprintln!("Conflict file path: {:?}", conflict_file);
 
     // Create harness with the project directory
-    let mut harness =
-        EditorTestHarness::with_config_and_working_dir(100, 30, Default::default(), project_root.clone())
-            .unwrap();
+    let mut harness = EditorTestHarness::with_config_and_working_dir(
+        100,
+        30,
+        Default::default(),
+        project_root.clone(),
+    )
+    .unwrap();
 
     // Open the conflict file
     eprintln!("Opening conflict file...");
@@ -869,7 +891,10 @@ fn test_diff3_conflict_with_base_section() {
 
     // The merge UI should now be active
     let screen = harness.screen_to_string();
-    println!("Screen after starting merge with diff3 conflict:\n{}", screen);
+    println!(
+        "Screen after starting merge with diff3 conflict:\n{}",
+        screen
+    );
 
     // CRITICAL: Verify the merge actually started by checking for merge UI elements
     // The plugin should have detected the conflict and shown merge panels

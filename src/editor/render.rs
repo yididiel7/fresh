@@ -119,14 +119,16 @@ impl Editor {
                     // Fire view_transform_request hook with base tokens
                     // This allows plugins to transform the view (e.g., soft breaks for markdown)
                     let visible_count = split_area.height as usize;
-                    let base_tokens = crate::ui::split_rendering::SplitRenderer::build_base_tokens_for_hook(
-                        &mut state.buffer,
-                        state.viewport.top_byte,
-                        self.config.editor.estimated_line_length,
-                        visible_count,
-                    );
+                    let base_tokens =
+                        crate::ui::split_rendering::SplitRenderer::build_base_tokens_for_hook(
+                            &mut state.buffer,
+                            state.viewport.top_byte,
+                            self.config.editor.estimated_line_length,
+                            visible_count,
+                        );
                     let viewport_start = state.viewport.top_byte;
-                    let viewport_end = base_tokens.last()
+                    let viewport_end = base_tokens
+                        .last()
                         .and_then(|t| t.source_offset)
                         .unwrap_or(viewport_start);
                     let transform_args = crate::hooks::HookArgs::ViewTransformRequest {
@@ -792,10 +794,7 @@ impl Editor {
         // Send didOpen to LSP
         if let Some(lsp) = &mut self.lsp {
             if let Some(client) = lsp.get_or_spawn(language) {
-                tracing::info!(
-                    "Sending didOpen to newly started LSP for: {}",
-                    uri.as_str()
-                );
+                tracing::info!("Sending didOpen to newly started LSP for: {}", uri.as_str());
                 if let Err(e) = client.did_open(uri.clone(), text, file_language) {
                     tracing::warn!("Failed to send didOpen to LSP: {}", e);
                 } else {
@@ -829,14 +828,9 @@ impl Editor {
                                 (999, 10000)
                             };
 
-                        if let Err(e) = client.inlay_hints(
-                            request_id,
-                            uri.clone(),
-                            0,
-                            0,
-                            last_line,
-                            last_char,
-                        ) {
+                        if let Err(e) =
+                            client.inlay_hints(request_id, uri.clone(), 0, 0, last_line, last_char)
+                        {
                             tracing::debug!(
                                 "Failed to request inlay hints (server may not support): {}",
                                 e

@@ -379,7 +379,12 @@ impl MenuRenderer {
             let enabled = is_menu_item_enabled(item, selection_active);
 
             let line = match item {
-                MenuItem::Action { label, action, checkbox, .. } => {
+                MenuItem::Action {
+                    label,
+                    action,
+                    checkbox,
+                    ..
+                } => {
                     let style = if is_highlighted {
                         Style::default()
                             .fg(theme.menu_highlight_fg)
@@ -412,7 +417,8 @@ impl MenuRenderer {
 
                     // Calculate spacing for alignment using actual content width
                     let checkbox_width = if checkbox.is_some() { 2 } else { 0 };
-                    let label_width = content_width.saturating_sub(keybinding.len() + checkbox_width + 2);
+                    let label_width =
+                        content_width.saturating_sub(keybinding.len() + checkbox_width + 2);
                     let text = if keybinding.is_empty() {
                         let padding = content_width.saturating_sub(checkbox_width);
                         format!(" {}{:<width$}", checkbox_icon, label, width = padding)

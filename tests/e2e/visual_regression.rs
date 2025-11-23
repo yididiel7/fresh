@@ -452,7 +452,8 @@ fn visual_lsp_rename() {
             .all()
             .iter()
             .filter(|o| {
-                o.namespace.as_ref()
+                o.namespace
+                    .as_ref()
                     .is_some_and(|ns| ns.as_str().starts_with("rename_overlay"))
             })
             .collect();
@@ -511,7 +512,8 @@ fn visual_lsp_rename() {
         .all()
         .iter()
         .filter(|o| {
-            o.namespace.as_ref()
+            o.namespace
+                .as_ref()
                 .is_some_and(|ns| ns.as_str().starts_with("rename_overlay"))
         })
         .collect();
@@ -532,7 +534,8 @@ fn visual_lsp_rename() {
         .all()
         .iter()
         .filter(|o| {
-            o.namespace.as_ref()
+            o.namespace
+                .as_ref()
                 .is_some_and(|ns| ns.as_str().starts_with("rename_overlay"))
         })
         .collect();
@@ -564,7 +567,8 @@ fn visual_lsp_rename() {
         .all()
         .iter()
         .filter(|o| {
-            o.namespace.as_ref()
+            o.namespace
+                .as_ref()
                 .is_some_and(|ns| ns.as_str().starts_with("rename_overlay"))
         })
         .collect();
@@ -773,7 +777,8 @@ fn test_lsp_rename_cancel_restores_original() {
             .all()
             .iter()
             .filter(|o| {
-                o.namespace.as_ref()
+                o.namespace
+                    .as_ref()
                     .is_some_and(|ns| ns.as_str().starts_with("rename_overlay"))
             })
             .collect();
@@ -819,7 +824,8 @@ fn test_lsp_rename_cancel_restores_original() {
         .all()
         .iter()
         .filter(|o| {
-            o.namespace.as_ref()
+            o.namespace
+                .as_ref()
                 .is_some_and(|ns| ns.as_str().starts_with("rename_overlay"))
         })
         .collect();
@@ -851,7 +857,8 @@ fn test_lsp_rename_cancel_restores_original() {
         .all()
         .iter()
         .filter(|o| {
-            o.namespace.as_ref()
+            o.namespace
+                .as_ref()
                 .is_some_and(|ns| ns.as_str().starts_with("rename_overlay"))
         })
         .collect();

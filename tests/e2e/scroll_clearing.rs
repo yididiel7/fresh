@@ -2,7 +2,6 @@
 /// Bug: when opening a file and scrolling all the way to the bottom of the file
 /// and scrolling down, the view doesn't clear properly and leftover characters
 /// from previous renders are still shown.
-
 use crate::common::harness::EditorTestHarness;
 use crossterm::event::{KeyCode, KeyModifiers};
 use std::path::PathBuf;
@@ -40,10 +39,15 @@ fn test_scroll_clearing_at_bottom_of_file() {
 
     // Get content area bounds
     let (content_first_row, content_last_row) = harness.content_area_rows();
-    println!("\nContent area: rows {} to {}", content_first_row, content_last_row);
+    println!(
+        "\nContent area: rows {} to {}",
+        content_first_row, content_last_row
+    );
 
     // Jump to the end of the file
-    harness.send_key(KeyCode::End, KeyModifiers::CONTROL).unwrap();
+    harness
+        .send_key(KeyCode::End, KeyModifiers::CONTROL)
+        .unwrap();
     harness.render().unwrap();
 
     println!("\n--- After jumping to end (Ctrl+End) ---");
@@ -63,7 +67,9 @@ fn test_scroll_clearing_at_bottom_of_file() {
 
     // Try PageDown multiple times
     for i in 1..=5 {
-        harness.send_key(KeyCode::PageDown, KeyModifiers::NONE).unwrap();
+        harness
+            .send_key(KeyCode::PageDown, KeyModifiers::NONE)
+            .unwrap();
         harness.render().unwrap();
 
         let screen_after = harness.screen_to_string();
@@ -100,7 +106,10 @@ fn test_scroll_clearing_at_bottom_of_file() {
     let total_lines = buffer_lines.len();
     let viewport_height = content_last_row - content_first_row + 1;
 
-    println!("\nFile has {} lines, viewport shows {} lines", total_lines, viewport_height);
+    println!(
+        "\nFile has {} lines, viewport shows {} lines",
+        total_lines, viewport_height
+    );
 
     if total_lines > viewport_height {
         // File is larger than viewport, so first lines should NOT be visible
@@ -176,7 +185,10 @@ fn test_scroll_clearing_at_bottom_of_file() {
     }
 
     if differences_found > 0 {
-        println!("\nWARNING: {} rows changed when pressing Down at end of file", differences_found);
+        println!(
+            "\nWARNING: {} rows changed when pressing Down at end of file",
+            differences_found
+        );
         println!("This may indicate a scroll clearing issue.");
     }
 
@@ -205,7 +217,10 @@ fn check_for_rendering_artifacts(screen: &str, context: &str) {
         // (visible as raw \x1b or similar)
         if line.contains("\\x1b") || line.contains("\x1b[") {
             // Note: Some terminal sequences might be expected, but visible ones are not
-            println!("Warning in {}: Possible raw escape sequence on line {}", context, idx);
+            println!(
+                "Warning in {}: Possible raw escape sequence on line {}",
+                context, idx
+            );
         }
     }
 }
@@ -294,12 +309,17 @@ fn test_leftover_characters_after_last_line() {
     let total_file_lines = buffer_content.lines().count();
 
     println!("File has {} lines", total_file_lines);
-    println!("Viewport content area: rows {} to {} ({} rows)",
-             content_first_row, content_last_row,
-             content_last_row - content_first_row + 1);
+    println!(
+        "Viewport content area: rows {} to {} ({} rows)",
+        content_first_row,
+        content_last_row,
+        content_last_row - content_first_row + 1
+    );
 
     // Jump to end of file
-    harness.send_key(KeyCode::End, KeyModifiers::CONTROL).unwrap();
+    harness
+        .send_key(KeyCode::End, KeyModifiers::CONTROL)
+        .unwrap();
     harness.render().unwrap();
 
     // Find which row contains the last line of the file
@@ -320,7 +340,10 @@ fn test_leftover_characters_after_last_line() {
     }
 
     println!("Last content row: {}", last_content_row);
-    println!("Last content line: {:?}", screen_lines.get(last_content_row));
+    println!(
+        "Last content line: {:?}",
+        screen_lines.get(last_content_row)
+    );
 
     // Any rows AFTER last_content_row + 1 should be completely empty
     // (just spaces or empty cells) within the content area
@@ -383,7 +406,10 @@ fn test_leftover_characters_after_last_line() {
         }
     }
 
-    println!("\nLast content row after scrolling: {}", last_content_row_after);
+    println!(
+        "\nLast content row after scrolling: {}",
+        last_content_row_after
+    );
 
     // Check for leftover content after scrolling
     for row_idx in (last_content_row_after + 2)..=content_last_row {
@@ -444,7 +470,9 @@ fn test_scroll_clearing_render_buffer_analysis() {
     println!("\n=== Render buffer analysis test ===");
 
     // Jump to end of file
-    harness.send_key(KeyCode::End, KeyModifiers::CONTROL).unwrap();
+    harness
+        .send_key(KeyCode::End, KeyModifiers::CONTROL)
+        .unwrap();
     harness.render().unwrap();
 
     // Capture the render buffer before scrolling attempts
@@ -452,7 +480,9 @@ fn test_scroll_clearing_render_buffer_analysis() {
 
     // Try to scroll past the end
     for _ in 0..5 {
-        harness.send_key(KeyCode::PageDown, KeyModifiers::NONE).unwrap();
+        harness
+            .send_key(KeyCode::PageDown, KeyModifiers::NONE)
+            .unwrap();
         harness.render().unwrap();
     }
 
@@ -480,7 +510,8 @@ fn test_scroll_clearing_render_buffer_analysis() {
                 if cell_differences <= 20 {
                     println!(
                         "Cell ({}, {}) changed: '{}' -> '{}'",
-                        x, y,
+                        x,
+                        y,
                         cell_before.symbol(),
                         cell_after.symbol()
                     );
@@ -557,7 +588,9 @@ fn test_scroll_clearing_real_terminal() {
     }
 
     // Jump to end of file
-    harness.send_key(KeyCode::End, KeyModifiers::CONTROL).unwrap();
+    harness
+        .send_key(KeyCode::End, KeyModifiers::CONTROL)
+        .unwrap();
     harness.render_real().unwrap();
 
     println!("\n--- After jumping to end ---");
@@ -599,7 +632,9 @@ fn test_scroll_clearing_real_terminal() {
     println!("\n=== Testing PageDown past end ===");
 
     for i in 1..=5 {
-        harness.send_key(KeyCode::PageDown, KeyModifiers::NONE).unwrap();
+        harness
+            .send_key(KeyCode::PageDown, KeyModifiers::NONE)
+            .unwrap();
         harness.render_real().unwrap();
 
         let differences = harness.compare_test_vs_real();
@@ -669,7 +704,10 @@ fn test_tab_cursor_positioning_and_rendering() {
     let line_with_tabs = content_first_row + 2; // Line 3 (0-indexed row 2 in content)
 
     if line_with_tabs < screen_lines.len() {
-        println!("Line {}: {:?}", line_with_tabs, screen_lines[line_with_tabs]);
+        println!(
+            "Line {}: {:?}",
+            line_with_tabs, screen_lines[line_with_tabs]
+        );
     }
 
     // Check that tab indicator (→) is visible on the line
@@ -681,7 +719,10 @@ fn test_tab_cursor_positioning_and_rendering() {
 
     // Count tab indicators on the line with tabs
     if line_with_tabs < screen_lines.len() {
-        let tab_count = screen_lines[line_with_tabs].chars().filter(|&c| c == '→').count();
+        let tab_count = screen_lines[line_with_tabs]
+            .chars()
+            .filter(|&c| c == '→')
+            .count();
         println!("Tab indicators on line {}: {}", line_with_tabs, tab_count);
         assert!(
             tab_count >= 3,
@@ -696,7 +737,9 @@ fn test_tab_cursor_positioning_and_rendering() {
 
     let mut prev_screen = screen_at_start.clone();
     for i in 1..=30 {
-        harness.send_key(KeyCode::Right, KeyModifiers::NONE).unwrap();
+        harness
+            .send_key(KeyCode::Right, KeyModifiers::NONE)
+            .unwrap();
         harness.render().unwrap();
 
         let current_screen = harness.screen_to_string();
@@ -805,8 +848,12 @@ fn test_cursor_before_first_tab() {
     // The gutter for this file is "    3 │ " = 8 characters
     // So cursor should be at column 8 (right after gutter), NOT column 15 (after tab expansion)
     let gutter_width = 8u16;
-    println!("Cursor x={} (should be {} = gutter width, not {} = after tab)",
-             cursor_x, gutter_width, gutter_width + 7);
+    println!(
+        "Cursor x={} (should be {} = gutter width, not {} = after tab)",
+        cursor_x,
+        gutter_width,
+        gutter_width + 7
+    );
 
     // Assert cursor is at start of content, not after tab expansion
     assert!(
@@ -820,7 +867,10 @@ fn test_cursor_before_first_tab() {
     let lines: Vec<&str> = screen.lines().collect();
 
     if expected_cursor_row as usize >= lines.len() {
-        println!("WARNING: Expected cursor row {} not in screen", expected_cursor_row);
+        println!(
+            "WARNING: Expected cursor row {} not in screen",
+            expected_cursor_row
+        );
         return;
     }
 

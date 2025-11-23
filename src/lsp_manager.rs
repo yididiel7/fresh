@@ -401,7 +401,10 @@ impl LspManager {
     /// Returns true if the server was found and shutdown, false otherwise
     pub fn shutdown_server(&mut self, language: &str) -> bool {
         if let Some(handle) = self.handles.remove(language) {
-            tracing::info!("Shutting down LSP server for {} (disabled until manual restart)", language);
+            tracing::info!(
+                "Shutting down LSP server for {} (disabled until manual restart)",
+                language
+            );
             let _ = handle.shutdown();
             // Mark as disabled to prevent auto-restart
             self.disabled_languages.insert(language.to_string());

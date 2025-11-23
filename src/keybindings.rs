@@ -1115,9 +1115,7 @@ impl KeybindingResolver {
 
             s if s.len() == 1 => s.chars().next().map(KeyCode::Char),
             // Handle function keys like "f1", "f2", ..., "f12"
-            s if s.starts_with('f') && s.len() >= 2 => {
-                s[1..].parse::<u8>().ok().map(KeyCode::F)
-            }
+            s if s.starts_with('f') && s.len() >= 2 => s[1..].parse::<u8>().ok().map(KeyCode::F),
             _ => None,
         }
     }
@@ -1137,8 +1135,6 @@ impl KeybindingResolver {
     }
 
     /// Create default keybindings organized by context
-
-
 
     /// Get all keybindings (for help display)
     /// Returns a Vec of (key_description, action_description)
@@ -1630,7 +1626,10 @@ mod tests {
         let esc_event = KeyEvent::new(KeyCode::Esc, KeyModifiers::empty());
 
         // In popup context, custom binding should override default PopupCancel
-        assert_eq!(resolver.resolve(&esc_event, KeyContext::Popup), Action::Quit);
+        assert_eq!(
+            resolver.resolve(&esc_event, KeyContext::Popup),
+            Action::Quit
+        );
 
         // In normal context, should still be RemoveSecondaryCursors
         assert_eq!(
@@ -1717,7 +1716,9 @@ mod tests {
         assert!(resolver.default_bindings.contains_key(&KeyContext::Normal));
         assert!(resolver.default_bindings.contains_key(&KeyContext::Prompt));
         assert!(resolver.default_bindings.contains_key(&KeyContext::Popup));
-        assert!(resolver.default_bindings.contains_key(&KeyContext::FileExplorer));
+        assert!(resolver
+            .default_bindings
+            .contains_key(&KeyContext::FileExplorer));
         assert!(resolver.default_bindings.contains_key(&KeyContext::Menu));
 
         // Verify each context has some bindings
@@ -1736,7 +1737,11 @@ mod tests {
 
         let test_cases = vec![
             (KeyCode::Left, KeyModifiers::empty(), KeyContext::Normal),
-            (KeyCode::Esc, KeyModifiers::empty(), KeyContext::FileExplorer),
+            (
+                KeyCode::Esc,
+                KeyModifiers::empty(),
+                KeyContext::FileExplorer,
+            ),
             (KeyCode::Enter, KeyModifiers::empty(), KeyContext::Prompt),
             (KeyCode::Down, KeyModifiers::empty(), KeyContext::Popup),
         ];

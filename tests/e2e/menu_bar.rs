@@ -88,9 +88,7 @@ fn test_f10_activates_menu_bar() {
     harness.render().unwrap();
 
     // Press Down to open the menu under the highlighted item
-    harness
-        .send_key(KeyCode::Down, KeyModifiers::NONE)
-        .unwrap();
+    harness.send_key(KeyCode::Down, KeyModifiers::NONE).unwrap();
     harness.render().unwrap();
 
     // First menu (File) should be open

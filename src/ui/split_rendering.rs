@@ -10,8 +10,8 @@ use crate::split::SplitManager;
 use crate::state::{EditorState, ViewMode};
 use crate::text_buffer::Buffer;
 use crate::ui::tabs::TabsRenderer;
-use crate::virtual_text::VirtualTextPosition;
 use crate::view::flatten_tokens;
+use crate::virtual_text::VirtualTextPosition;
 use ratatui::layout::Rect;
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
@@ -198,8 +198,7 @@ impl SplitRenderer {
                 let saved_state =
                     Self::temporary_split_state(state, split_view_states, split_id, is_active);
                 Self::sync_viewport_to_content(state, layout.content_rect);
-                let view_prefs =
-                    Self::resolve_view_preferences(state, split_view_states, split_id);
+                let view_prefs = Self::resolve_view_preferences(state, split_view_states, split_id);
 
                 Self::render_buffer_in_split(
                     frame,
@@ -340,17 +339,24 @@ impl SplitRenderer {
         split_view_states: Option<&HashMap<crate::event::SplitId, crate::split::SplitViewState>>,
         split_id: crate::event::SplitId,
         is_active: bool,
-    ) -> (Option<crate::cursor::Cursors>, Option<crate::viewport::Viewport>) {
+    ) -> (
+        Option<crate::cursor::Cursors>,
+        Option<crate::viewport::Viewport>,
+    ) {
         if is_active {
             return (None, None);
         }
 
         if let Some(view_states) = split_view_states {
             if let Some(view_state) = view_states.get(&split_id) {
-                let saved_cursors =
-                    Some(std::mem::replace(&mut state.cursors, view_state.cursors.clone()));
-                let saved_viewport =
-                    Some(std::mem::replace(&mut state.viewport, view_state.viewport.clone()));
+                let saved_cursors = Some(std::mem::replace(
+                    &mut state.cursors,
+                    view_state.cursors.clone(),
+                ));
+                let saved_viewport = Some(std::mem::replace(
+                    &mut state.viewport,
+                    view_state.viewport.clone(),
+                ));
                 return (saved_cursors, saved_viewport);
             }
         }
@@ -375,7 +381,8 @@ impl SplitRenderer {
     }
 
     fn sync_viewport_to_content(state: &mut EditorState, content_rect: Rect) {
-        if state.viewport.width != content_rect.width || state.viewport.height != content_rect.height
+        if state.viewport.width != content_rect.width
+            || state.viewport.height != content_rect.height
         {
             state
                 .viewport
@@ -561,9 +568,7 @@ impl SplitRenderer {
         );
 
         // Use plugin transform if available, otherwise use base tokens
-        let mut tokens = view_transform
-            .map(|vt| vt.tokens)
-            .unwrap_or(base_tokens);
+        let mut tokens = view_transform.map(|vt| vt.tokens).unwrap_or(base_tokens);
 
         // Apply wrapping transform if enabled
         if line_wrap_enabled {
@@ -1057,28 +1062,28 @@ impl SplitRenderer {
         let mut current_source_line_num = starting_line_num;
 
         loop {
-            let (line_view_offset, line_content, line_has_newline) =
-                if let Some(ViewLine {
-                    offset,
-                    text,
-                    ends_with_newline,
-                }) = view_lines.get(view_iter_idx)
-                {
-                    let mut content = text.clone();
-                    let mut base = *offset;
-                    if view_iter_idx == view_anchor.start_line_idx && view_start_line_skip > 0 {
-                        let skip = view_start_line_skip;
-                        content = text.chars().skip(skip).collect();
-                        base += skip;
-                        view_start_line_skip = 0;
-                    }
-                    view_iter_idx += 1;
-                    (base, content, *ends_with_newline)
-                } else if is_empty_buffer && lines_rendered == 0 {
-                    (0, String::new(), false)
-                } else {
-                    break;
-                };
+            let (line_view_offset, line_content, line_has_newline) = if let Some(ViewLine {
+                offset,
+                text,
+                ends_with_newline,
+            }) =
+                view_lines.get(view_iter_idx)
+            {
+                let mut content = text.clone();
+                let mut base = *offset;
+                if view_iter_idx == view_anchor.start_line_idx && view_start_line_skip > 0 {
+                    let skip = view_start_line_skip;
+                    content = text.chars().skip(skip).collect();
+                    base += skip;
+                    view_start_line_skip = 0;
+                }
+                view_iter_idx += 1;
+                (base, content, *ends_with_newline)
+            } else if is_empty_buffer && lines_rendered == 0 {
+                (0, String::new(), false)
+            } else {
+                break;
+            };
 
             if lines_rendered >= visible_line_count {
                 break;
@@ -1270,9 +1275,7 @@ impl SplitRenderer {
 
                     let is_selected = !is_cursor
                         && byte_pos.map_or(false, |bp| {
-                            selection_ranges
-                                .iter()
-                                .any(|range| range.contains(&bp))
+                            selection_ranges.iter().any(|range| range.contains(&bp))
                         })
                         || (!is_cursor && is_in_block_selection);
 
@@ -1442,11 +1445,8 @@ impl SplitRenderer {
                     }
 
                     if is_cursor && ch == '\n' {
-                        let should_add_indicator = if is_active {
-                            is_secondary_cursor
-                        } else {
-                            true
-                        };
+                        let should_add_indicator =
+                            if is_active { is_secondary_cursor } else { true };
                         if should_add_indicator {
                             let cursor_style = if is_active {
                                 Style::default()
@@ -1490,7 +1490,10 @@ impl SplitRenderer {
                 let after_last_char_view_idx = line_view_offset + line_len_chars;
 
                 let last_char_buf_pos = view_mapping.get(last_char_view_idx).copied().flatten();
-                let after_last_char_buf_pos = view_mapping.get(after_last_char_view_idx).copied().flatten();
+                let after_last_char_buf_pos = view_mapping
+                    .get(after_last_char_view_idx)
+                    .copied()
+                    .flatten();
 
                 let cursor_at_end = cursor_positions.iter().any(|&pos| {
                     // Cursor is "at end" only if it's AFTER the last character, not ON it.
@@ -1499,15 +1502,18 @@ impl SplitRenderer {
                     // Fallback: when there's no mapping after last char (EOF), check if cursor is after last char
                     // The fallback should match the position that would be "after" if there was a mapping
                     let expected_after_pos = last_char_buf_pos.map(|p| p + 1).unwrap_or(0);
-                    let matches_fallback = after_last_char_buf_pos.is_none() && pos == expected_after_pos;
+                    let matches_fallback =
+                        after_last_char_buf_pos.is_none() && pos == expected_after_pos;
 
                     matches_after || matches_fallback
                 });
 
                 if cursor_at_end {
                     // Primary cursor is at end only if AFTER the last char, not ON it
-                    let is_primary_at_end = after_last_char_buf_pos.map_or(false, |bp| bp == primary_cursor_position)
-                        || (after_last_char_buf_pos.is_none() && primary_cursor_position >= state.buffer.len());
+                    let is_primary_at_end = after_last_char_buf_pos
+                        .map_or(false, |bp| bp == primary_cursor_position)
+                        || (after_last_char_buf_pos.is_none()
+                            && primary_cursor_position >= state.buffer.len());
 
                     // Track cursor position for primary cursor
                     if is_primary_at_end && last_seg_y.is_some() {
@@ -1523,11 +1529,7 @@ impl SplitRenderer {
                         have_cursor = true;
                     }
 
-                    let should_add_indicator = if is_active {
-                        !is_primary_at_end
-                    } else {
-                        true
-                    };
+                    let should_add_indicator = if is_active { !is_primary_at_end } else { true };
                     if should_add_indicator {
                         let cursor_style = if is_active {
                             Style::default()
@@ -1682,10 +1684,15 @@ impl SplitRenderer {
         // This also ensures proper clearing in differential rendering because tildes
         // are guaranteed to differ from previous content, forcing ratatui to update.
         // See: https://github.com/ratatui/ratatui/issues/1606
-        let eof_style = Style::default().fg(theme.line_number_fg).add_modifier(ratatui::style::Modifier::DIM);
+        let eof_style = Style::default()
+            .fg(theme.line_number_fg)
+            .add_modifier(ratatui::style::Modifier::DIM);
         while lines.len() < render_area.height as usize {
             // Show tilde with dim styling, padded with spaces to fill the line
-            let tilde_line = format!("~{}", " ".repeat(render_area.width.saturating_sub(1) as usize));
+            let tilde_line = format!(
+                "~{}",
+                " ".repeat(render_area.width.saturating_sub(1) as usize)
+            );
             lines.push(Line::styled(tilde_line, eof_style));
         }
 
@@ -1721,7 +1728,6 @@ impl SplitRenderer {
 
         last_line_end.map(|end| end.pos)
     }
-
 
     /// Render a single buffer in a split pane
     fn render_buffer_in_split(
@@ -1770,8 +1776,11 @@ impl SplitRenderer {
             render_area.width as usize,
             gutter_width,
         );
-        let view_anchor =
-            Self::calculate_view_anchor(&view_data.lines, &view_data.mapping, state.viewport.top_byte);
+        let view_anchor = Self::calculate_view_anchor(
+            &view_data.lines,
+            &view_data.mapping,
+            state.viewport.top_byte,
+        );
         Self::render_compose_margins(frame, area, &compose_layout, &view_mode, theme);
 
         let selection = Self::selection_context(state);
@@ -1796,10 +1805,9 @@ impl SplitRenderer {
             );
         }
 
-        let starting_line_num =
-            state
-                .buffer
-                .populate_line_cache(state.viewport.top_byte, visible_count);
+        let starting_line_num = state
+            .buffer
+            .populate_line_cache(state.viewport.top_byte, visible_count);
 
         let viewport_start = state.viewport.top_byte;
         let viewport_end = Self::calculate_viewport_end(
@@ -1862,7 +1870,9 @@ impl SplitRenderer {
             let guide_style = Style::default()
                 .fg(theme.line_number_fg)
                 .add_modifier(Modifier::DIM);
-            let guide_height = render_output.content_lines_rendered.min(render_area.height as usize);
+            let guide_height = render_output
+                .content_lines_rendered
+                .min(render_area.height as usize);
 
             for col in guides {
                 // Column guides are relative to content area (after gutter)
@@ -2047,10 +2057,9 @@ mod tests {
         let gutter_width = state.margins.left_total_width();
 
         let selection = SplitRenderer::selection_context(&state);
-        let starting_line_num =
-            state
-                .buffer
-                .populate_line_cache(state.viewport.top_byte, visible_count);
+        let starting_line_num = state
+            .buffer
+            .populate_line_cache(state.viewport.top_byte, visible_count);
         let viewport_start = state.viewport.top_byte;
         let viewport_end = SplitRenderer::calculate_viewport_end(
             &mut state,
@@ -2164,7 +2173,11 @@ mod tests {
             let mut col = 0u16;
             for span in line.spans.iter() {
                 // Check if this span has the REVERSED modifier (secondary cursor)
-                if span.style.add_modifier.contains(ratatui::style::Modifier::REVERSED) {
+                if span
+                    .style
+                    .add_modifier
+                    .contains(ratatui::style::Modifier::REVERSED)
+                {
                     // Found a visual cursor - record its position
                     cursor_positions.push((col, line_idx as u16));
                 }
@@ -2188,10 +2201,15 @@ mod tests {
         for (line_idx, line) in output.lines.iter().enumerate() {
             eprintln!("  Line {}: {} spans", line_idx, line.spans.len());
             for (span_idx, span) in line.spans.iter().enumerate() {
-                let has_reversed = span.style.add_modifier.contains(ratatui::style::Modifier::REVERSED);
+                let has_reversed = span
+                    .style
+                    .add_modifier
+                    .contains(ratatui::style::Modifier::REVERSED);
                 let bg_color = format!("{:?}", span.style.bg);
-                eprintln!("    Span {}: {:?} (REVERSED: {}, BG: {})",
-                    span_idx, span.content, has_reversed, bg_color);
+                eprintln!(
+                    "    Span {}: {:?} (REVERSED: {}, BG: {})",
+                    span_idx, span.content, has_reversed, bg_color
+                );
             }
         }
         eprintln!("===================\n");
@@ -2200,7 +2218,8 @@ mod tests {
     // Helper to get final cursor position after fallback resolution
     // Also validates that exactly one cursor is present
     fn get_final_cursor(content: &str, cursor_pos: usize) -> Option<(u16, u16)> {
-        let (output, buffer_len, buffer_newline, cursor_pos) = render_output_for(content, cursor_pos);
+        let (output, buffer_len, buffer_newline, cursor_pos) =
+            render_output_for(content, cursor_pos);
 
         // Count all cursors (hardware + visual) in the rendered output
         let all_cursors = count_all_cursors(&output);
@@ -2225,7 +2244,8 @@ mod tests {
         );
 
         // Debug dump if we find unexpected results
-        if all_cursors.len() > 1 || (all_cursors.len() == 1 && Some(all_cursors[0]) != final_cursor) {
+        if all_cursors.len() > 1 || (all_cursors.len() == 1 && Some(all_cursors[0]) != final_cursor)
+        {
             dump_render_output(content, cursor_pos, &output);
         }
 
@@ -2251,7 +2271,11 @@ mod tests {
     }
 
     // Helper to simulate typing a character and check if it appears at cursor position
-    fn check_typing_at_cursor(content: &str, cursor_pos: usize, char_to_type: char) -> (Option<(u16, u16)>, String) {
+    fn check_typing_at_cursor(
+        content: &str,
+        cursor_pos: usize,
+        char_to_type: char,
+    ) -> (Option<(u16, u16)>, String) {
         // Get cursor position before typing
         let cursor_before = get_final_cursor(content, cursor_pos);
 
@@ -2271,7 +2295,10 @@ mod tests {
         assert_eq!(cursor, Some((0, 0)), "Cursor should be at column 0, line 0");
 
         let (cursor_pos, new_content) = check_typing_at_cursor("abc", 0, 'X');
-        assert_eq!(new_content, "Xabc", "Typing should insert at cursor position");
+        assert_eq!(
+            new_content, "Xabc",
+            "Typing should insert at cursor position"
+        );
         assert_eq!(cursor_pos, Some((0, 0)));
     }
 
@@ -2282,7 +2309,10 @@ mod tests {
         assert_eq!(cursor, Some((1, 0)), "Cursor should be at column 1, line 0");
 
         let (cursor_pos, new_content) = check_typing_at_cursor("abc", 1, 'X');
-        assert_eq!(new_content, "aXbc", "Typing should insert at cursor position");
+        assert_eq!(
+            new_content, "aXbc",
+            "Typing should insert at cursor position"
+        );
         assert_eq!(cursor_pos, Some((1, 0)));
     }
 
@@ -2290,7 +2320,11 @@ mod tests {
     fn e2e_cursor_at_end_of_line_no_newline() {
         // "abc" with cursor at position 3 (after 'c', at EOF)
         let cursor = get_final_cursor("abc", 3);
-        assert_eq!(cursor, Some((3, 0)), "Cursor should be at column 3, line 0 (after last char)");
+        assert_eq!(
+            cursor,
+            Some((3, 0)),
+            "Cursor should be at column 3, line 0 (after last char)"
+        );
 
         let (cursor_pos, new_content) = check_typing_at_cursor("abc", 3, 'X');
         assert_eq!(new_content, "abcX", "Typing should append at end");
@@ -2301,7 +2335,11 @@ mod tests {
     fn e2e_cursor_at_empty_line() {
         // "\n" with cursor at position 0 (on the newline itself)
         let cursor = get_final_cursor("\n", 0);
-        assert_eq!(cursor, Some((0, 0)), "Cursor on empty line should be at column 0");
+        assert_eq!(
+            cursor,
+            Some((0, 0)),
+            "Cursor on empty line should be at column 0"
+        );
 
         let (cursor_pos, new_content) = check_typing_at_cursor("\n", 0, 'X');
         assert_eq!(new_content, "X\n", "Typing should insert before newline");
@@ -2312,7 +2350,11 @@ mod tests {
     fn e2e_cursor_after_newline_at_eof() {
         // "abc\n" with cursor at position 4 (after newline, at EOF)
         let cursor = get_final_cursor("abc\n", 4);
-        assert_eq!(cursor, Some((0, 1)), "Cursor after newline at EOF should be on next line");
+        assert_eq!(
+            cursor,
+            Some((0, 1)),
+            "Cursor after newline at EOF should be on next line"
+        );
 
         let (cursor_pos, new_content) = check_typing_at_cursor("abc\n", 4, 'X');
         assert_eq!(new_content, "abc\nX", "Typing should insert on new line");
@@ -2323,7 +2365,11 @@ mod tests {
     fn e2e_cursor_on_newline_with_content() {
         // "abc\n" with cursor at position 3 (on the newline character)
         let cursor = get_final_cursor("abc\n", 3);
-        assert_eq!(cursor, Some((3, 0)), "Cursor on newline after content should be after last char");
+        assert_eq!(
+            cursor,
+            Some((3, 0)),
+            "Cursor on newline after content should be after last char"
+        );
 
         let (cursor_pos, new_content) = check_typing_at_cursor("abc\n", 3, 'X');
         assert_eq!(new_content, "abcX\n", "Typing should insert before newline");
@@ -2334,10 +2380,17 @@ mod tests {
     fn e2e_cursor_multiline_start_of_second_line() {
         // "abc\ndef" with cursor at position 4 (start of second line, on 'd')
         let cursor = get_final_cursor("abc\ndef", 4);
-        assert_eq!(cursor, Some((0, 1)), "Cursor at start of second line should be at column 0, line 1");
+        assert_eq!(
+            cursor,
+            Some((0, 1)),
+            "Cursor at start of second line should be at column 0, line 1"
+        );
 
         let (cursor_pos, new_content) = check_typing_at_cursor("abc\ndef", 4, 'X');
-        assert_eq!(new_content, "abc\nXdef", "Typing should insert at start of second line");
+        assert_eq!(
+            new_content, "abc\nXdef",
+            "Typing should insert at start of second line"
+        );
         assert_eq!(cursor_pos, Some((0, 1)));
     }
 
@@ -2345,10 +2398,17 @@ mod tests {
     fn e2e_cursor_multiline_end_of_first_line() {
         // "abc\ndef" with cursor at position 3 (on newline of first line)
         let cursor = get_final_cursor("abc\ndef", 3);
-        assert_eq!(cursor, Some((3, 0)), "Cursor on newline of first line should be after content");
+        assert_eq!(
+            cursor,
+            Some((3, 0)),
+            "Cursor on newline of first line should be after content"
+        );
 
         let (cursor_pos, new_content) = check_typing_at_cursor("abc\ndef", 3, 'X');
-        assert_eq!(new_content, "abcX\ndef", "Typing should insert before newline");
+        assert_eq!(
+            new_content, "abcX\ndef",
+            "Typing should insert before newline"
+        );
         assert_eq!(cursor_pos, Some((3, 0)));
     }
 
@@ -2356,10 +2416,17 @@ mod tests {
     fn e2e_cursor_empty_buffer() {
         // Empty buffer with cursor at position 0
         let cursor = get_final_cursor("", 0);
-        assert_eq!(cursor, Some((0, 0)), "Cursor in empty buffer should be at origin");
+        assert_eq!(
+            cursor,
+            Some((0, 0)),
+            "Cursor in empty buffer should be at origin"
+        );
 
         let (cursor_pos, new_content) = check_typing_at_cursor("", 0, 'X');
-        assert_eq!(new_content, "X", "Typing in empty buffer should insert character");
+        assert_eq!(
+            new_content, "X",
+            "Typing in empty buffer should insert character"
+        );
         assert_eq!(cursor_pos, Some((0, 0)));
     }
 
@@ -2426,7 +2493,11 @@ mod tests {
     fn e2e_cursor_at_eof_after_multiple_lines() {
         // "abc\ndef\nghi" with cursor at position 11 (at EOF, no trailing newline)
         let cursor = get_final_cursor("abc\ndef\nghi", 11);
-        assert_eq!(cursor, Some((3, 2)), "Cursor at EOF after 'i' should be at column 3, line 2");
+        assert_eq!(
+            cursor,
+            Some((3, 2)),
+            "Cursor at EOF after 'i' should be at column 3, line 2"
+        );
 
         let (cursor_pos, new_content) = check_typing_at_cursor("abc\ndef\nghi", 11, 'X');
         assert_eq!(new_content, "abc\ndef\nghiX", "Typing should append at end");
@@ -2437,10 +2508,17 @@ mod tests {
     fn e2e_cursor_at_eof_with_trailing_newline() {
         // "abc\ndef\nghi\n" with cursor at position 12 (after trailing newline)
         let cursor = get_final_cursor("abc\ndef\nghi\n", 12);
-        assert_eq!(cursor, Some((0, 3)), "Cursor after trailing newline should be on line 3");
+        assert_eq!(
+            cursor,
+            Some((0, 3)),
+            "Cursor after trailing newline should be on line 3"
+        );
 
         let (cursor_pos, new_content) = check_typing_at_cursor("abc\ndef\nghi\n", 12, 'X');
-        assert_eq!(new_content, "abc\ndef\nghi\nX", "Typing should insert on new line");
+        assert_eq!(
+            new_content, "abc\ndef\nghi\nX",
+            "Typing should insert on new line"
+        );
         assert_eq!(cursor_pos, Some((0, 3)));
     }
 
@@ -2455,7 +2533,11 @@ mod tests {
 
         // Jump to EOF (position 11, after 'i')
         let cursor_at_eof = get_final_cursor(content, 11);
-        assert_eq!(cursor_at_eof, Some((3, 2)), "After Ctrl+End, cursor at column 3, line 2");
+        assert_eq!(
+            cursor_at_eof,
+            Some((3, 2)),
+            "After Ctrl+End, cursor at column 3, line 2"
+        );
 
         // Type a character at EOF
         let (cursor_before_typing, new_content) = check_typing_at_cursor(content, 11, 'X');
@@ -2464,7 +2546,11 @@ mod tests {
 
         // Verify cursor position in the new content
         let cursor_after_typing = get_final_cursor(&new_content, 12);
-        assert_eq!(cursor_after_typing, Some((4, 2)), "After typing, cursor moved to column 4");
+        assert_eq!(
+            cursor_after_typing,
+            Some((4, 2)),
+            "After typing, cursor moved to column 4"
+        );
 
         // Move cursor to start of buffer - verify cursor is no longer at end
         let cursor_moved_away = get_final_cursor(&new_content, 0);
@@ -2484,20 +2570,35 @@ mod tests {
 
         // Jump to EOF (position 12, after trailing newline)
         let cursor_at_eof = get_final_cursor(content, 12);
-        assert_eq!(cursor_at_eof, Some((0, 3)), "After Ctrl+End, cursor at column 0, line 3 (new line)");
+        assert_eq!(
+            cursor_at_eof,
+            Some((0, 3)),
+            "After Ctrl+End, cursor at column 0, line 3 (new line)"
+        );
 
         // Type a character at EOF
         let (cursor_before_typing, new_content) = check_typing_at_cursor(content, 12, 'X');
         assert_eq!(cursor_before_typing, Some((0, 3)));
-        assert_eq!(new_content, "abc\ndef\nghi\nX", "Character inserted on new line");
+        assert_eq!(
+            new_content, "abc\ndef\nghi\nX",
+            "Character inserted on new line"
+        );
 
         // After typing, the cursor should move forward
         let cursor_after_typing = get_final_cursor(&new_content, 13);
-        assert_eq!(cursor_after_typing, Some((1, 3)), "After typing, cursor should be at column 1, line 3");
+        assert_eq!(
+            cursor_after_typing,
+            Some((1, 3)),
+            "After typing, cursor should be at column 1, line 3"
+        );
 
         // Move cursor to middle of buffer - verify cursor is no longer at end
         let cursor_moved_away = get_final_cursor(&new_content, 4);
-        assert_eq!(cursor_moved_away, Some((0, 1)), "Cursor moved to start of line 1 (position 4 = start of 'def')");
+        assert_eq!(
+            cursor_moved_away,
+            Some((0, 1)),
+            "Cursor moved to start of line 1 (position 4 = start of 'def')"
+        );
     }
 
     #[test]
@@ -2506,7 +2607,11 @@ mod tests {
         let content = "";
 
         let cursor_at_eof = get_final_cursor(content, 0);
-        assert_eq!(cursor_at_eof, Some((0, 0)), "Empty buffer: cursor at origin");
+        assert_eq!(
+            cursor_at_eof,
+            Some((0, 0)),
+            "Empty buffer: cursor at origin"
+        );
 
         // Type a character
         let (cursor_before_typing, new_content) = check_typing_at_cursor(content, 0, 'X');
@@ -2515,11 +2620,19 @@ mod tests {
 
         // Verify cursor after typing
         let cursor_after_typing = get_final_cursor(&new_content, 1);
-        assert_eq!(cursor_after_typing, Some((1, 0)), "After typing, cursor at column 1");
+        assert_eq!(
+            cursor_after_typing,
+            Some((1, 0)),
+            "After typing, cursor at column 1"
+        );
 
         // Move cursor back to start - verify cursor is no longer at end
         let cursor_moved_away = get_final_cursor(&new_content, 0);
-        assert_eq!(cursor_moved_away, Some((0, 0)), "Cursor moved back to start");
+        assert_eq!(
+            cursor_moved_away,
+            Some((0, 0)),
+            "Cursor moved back to start"
+        );
     }
 
     #[test]
@@ -2529,11 +2642,19 @@ mod tests {
 
         // Position 0 is ON the newline
         let cursor_on_newline = get_final_cursor(content, 0);
-        assert_eq!(cursor_on_newline, Some((0, 0)), "Cursor on the newline character");
+        assert_eq!(
+            cursor_on_newline,
+            Some((0, 0)),
+            "Cursor on the newline character"
+        );
 
         // Position 1 is AFTER the newline (EOF)
         let cursor_at_eof = get_final_cursor(content, 1);
-        assert_eq!(cursor_at_eof, Some((0, 1)), "After Ctrl+End, cursor on line 1");
+        assert_eq!(
+            cursor_at_eof,
+            Some((0, 1)),
+            "After Ctrl+End, cursor on line 1"
+        );
 
         // Type at EOF
         let (cursor_before_typing, new_content) = check_typing_at_cursor(content, 1, 'X');
@@ -2541,10 +2662,18 @@ mod tests {
         assert_eq!(new_content, "\nX", "Character on second line");
 
         let cursor_after_typing = get_final_cursor(&new_content, 2);
-        assert_eq!(cursor_after_typing, Some((1, 1)), "After typing, cursor at column 1, line 1");
+        assert_eq!(
+            cursor_after_typing,
+            Some((1, 1)),
+            "After typing, cursor at column 1, line 1"
+        );
 
         // Move cursor to the newline - verify cursor is no longer at end
         let cursor_moved_away = get_final_cursor(&new_content, 0);
-        assert_eq!(cursor_moved_away, Some((0, 0)), "Cursor moved to the newline on line 0");
+        assert_eq!(
+            cursor_moved_away,
+            Some((0, 0)),
+            "Cursor moved to the newline on line 0"
+        );
     }
 }

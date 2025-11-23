@@ -151,7 +151,6 @@ impl Default for EditorConfig {
     }
 }
 
-
 /// File explorer configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FileExplorerConfig {
@@ -369,7 +368,10 @@ impl Config {
     ) -> Vec<Keybinding> {
         // Prevent infinite loops
         if visited.contains(map_name) {
-            eprintln!("Warning: Circular inheritance detected in keymap '{}'", map_name);
+            eprintln!(
+                "Warning: Circular inheritance detected in keymap '{}'",
+                map_name
+            );
             return Vec::new();
         }
         visited.insert(map_name.to_string());

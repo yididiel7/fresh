@@ -66,11 +66,7 @@ impl ViewStream {
 /// Build a base view stream for a viewport range (byte offsets)
 /// This stream contains plain text and newline tokens only; overlays and virtual
 /// text are not included here (they remain applied during rendering).
-pub fn build_base_stream(
-    state: &mut EditorState,
-    start: usize,
-    end: usize,
-) -> ViewStream {
+pub fn build_base_stream(state: &mut EditorState, start: usize, end: usize) -> ViewStream {
     let mut stream = ViewStream::new();
 
     if start >= end {
@@ -238,7 +234,12 @@ mod tests {
         assert_eq!(result.mapping.len(), 9);
         assert_eq!(result.mapping[0], Some(0)); // 'a'
         for i in 1..8 {
-            assert_eq!(result.mapping[i], Some(1), "space {} should map to tab at byte 1", i);
+            assert_eq!(
+                result.mapping[i],
+                Some(1),
+                "space {} should map to tab at byte 1",
+                i
+            );
         }
         assert_eq!(result.mapping[8], Some(2)); // 'b'
 

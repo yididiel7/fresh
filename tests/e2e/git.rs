@@ -318,14 +318,19 @@ fn test_git_find_file_shows_results() {
             |h| {
                 let screen = h.screen_to_string();
                 // Wait for both the prompt and file content
-                screen.contains("Find file:") &&
-                    (screen.contains("src/") || screen.contains(".rs") || screen.contains("Cargo.toml"))
+                screen.contains("Find file:")
+                    && (screen.contains("src/")
+                        || screen.contains(".rs")
+                        || screen.contains("Cargo.toml"))
             },
             5000, // Increased timeout for async git command
         )
         .unwrap();
 
-    assert!(found, "File picker and file list should appear within timeout");
+    assert!(
+        found,
+        "File picker and file list should appear within timeout"
+    );
 
     let screen = harness.screen_to_string();
     println!("Git find file screen:\n{screen}");
@@ -1012,7 +1017,9 @@ fn test_git_log_cursor_navigation() {
         .unwrap();
 
     // Navigate down using j key (should work via inherited normal mode)
-    harness.send_key(KeyCode::Char('j'), KeyModifiers::NONE).unwrap();
+    harness
+        .send_key(KeyCode::Char('j'), KeyModifiers::NONE)
+        .unwrap();
     harness.process_async_and_render().unwrap();
 
     // Navigate down using Down arrow
@@ -1020,7 +1027,9 @@ fn test_git_log_cursor_navigation() {
     harness.process_async_and_render().unwrap();
 
     // Navigate up using k key
-    harness.send_key(KeyCode::Char('k'), KeyModifiers::NONE).unwrap();
+    harness
+        .send_key(KeyCode::Char('k'), KeyModifiers::NONE)
+        .unwrap();
     harness.process_async_and_render().unwrap();
 
     let screen = harness.screen_to_string();
@@ -1062,7 +1071,9 @@ fn test_git_log_show_commit_detail() {
     harness.process_async_and_render().unwrap();
 
     // Press Enter to show commit detail
-    harness.send_key(KeyCode::Enter, KeyModifiers::NONE).unwrap();
+    harness
+        .send_key(KeyCode::Enter, KeyModifiers::NONE)
+        .unwrap();
 
     // Wait for commit detail to load
     let found = harness
@@ -1112,7 +1123,9 @@ fn test_git_log_back_from_commit_detail() {
     // Move to commit and show detail
     harness.send_key(KeyCode::Down, KeyModifiers::NONE).unwrap();
     harness.process_async_and_render().unwrap();
-    harness.send_key(KeyCode::Enter, KeyModifiers::NONE).unwrap();
+    harness
+        .send_key(KeyCode::Enter, KeyModifiers::NONE)
+        .unwrap();
 
     // Wait for commit detail
     harness
@@ -1123,7 +1136,9 @@ fn test_git_log_back_from_commit_detail() {
     println!("Commit detail:\n{screen_detail}");
 
     // Press q to go back to git log
-    harness.send_key(KeyCode::Char('q'), KeyModifiers::NONE).unwrap();
+    harness
+        .send_key(KeyCode::Char('q'), KeyModifiers::NONE)
+        .unwrap();
     harness.process_async_and_render().unwrap();
 
     // Wait for git log to reappear
@@ -1134,7 +1149,10 @@ fn test_git_log_back_from_commit_detail() {
     let screen_log = harness.screen_to_string();
     println!("Back to git log:\n{screen_log}");
 
-    assert!(back_to_log, "Should return to git log view. Screen:\n{screen_log}");
+    assert!(
+        back_to_log,
+        "Should return to git log view. Screen:\n{screen_log}"
+    );
 }
 
 /// Test closing git log with q
@@ -1168,7 +1186,9 @@ fn test_git_log_close() {
     assert!(screen_before.contains("Commits:"));
 
     // Press q to close git log
-    harness.send_key(KeyCode::Char('q'), KeyModifiers::NONE).unwrap();
+    harness
+        .send_key(KeyCode::Char('q'), KeyModifiers::NONE)
+        .unwrap();
     harness.process_async_and_render().unwrap();
 
     // Git log should be closed
@@ -1213,7 +1233,9 @@ fn test_git_log_diff_coloring() {
     // Move to the commit and show detail
     harness.send_key(KeyCode::Down, KeyModifiers::NONE).unwrap();
     harness.process_async_and_render().unwrap();
-    harness.send_key(KeyCode::Enter, KeyModifiers::NONE).unwrap();
+    harness
+        .send_key(KeyCode::Enter, KeyModifiers::NONE)
+        .unwrap();
 
     // Wait for commit detail (git show output includes Author:)
     let found = harness

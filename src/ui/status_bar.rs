@@ -120,7 +120,11 @@ impl StatusBarRenderer {
         // Use the pre-computed display name from buffer metadata
         let filename = display_name;
 
-        let modified = if state.buffer.is_modified() { " [+]" } else { "" };
+        let modified = if state.buffer.is_modified() {
+            " [+]"
+        } else {
+            ""
+        };
 
         // Format chord state if present
         let chord_display = if !chord_state.is_empty() {

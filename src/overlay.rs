@@ -13,7 +13,10 @@ impl OverlayHandle {
     /// Generate a new unique handle
     pub fn new() -> Self {
         static NEXT_HANDLE: AtomicU64 = AtomicU64::new(1);
-        Self(format!("ovl_{}", NEXT_HANDLE.fetch_add(1, Ordering::Relaxed)))
+        Self(format!(
+            "ovl_{}",
+            NEXT_HANDLE.fetch_add(1, Ordering::Relaxed)
+        ))
     }
 
     /// Create a handle from a string (for internal use)
@@ -42,7 +45,10 @@ impl OverlayNamespace {
     /// Generate a new unique namespace
     pub fn new() -> Self {
         static NEXT_NAMESPACE: AtomicU64 = AtomicU64::new(1);
-        Self(format!("ns_{}", NEXT_NAMESPACE.fetch_add(1, Ordering::Relaxed)))
+        Self(format!(
+            "ns_{}",
+            NEXT_NAMESPACE.fetch_add(1, Ordering::Relaxed)
+        ))
     }
 
     /// Create a namespace from a string (for plugin registration)
@@ -230,7 +236,11 @@ impl OverlayManager {
     }
 
     /// Remove an overlay by its handle
-    pub fn remove_by_handle(&mut self, handle: &OverlayHandle, marker_list: &mut MarkerList) -> bool {
+    pub fn remove_by_handle(
+        &mut self,
+        handle: &OverlayHandle,
+        marker_list: &mut MarkerList,
+    ) -> bool {
         if let Some(pos) = self.overlays.iter().position(|o| &o.handle == handle) {
             let overlay = self.overlays.remove(pos);
             marker_list.delete(overlay.start_marker);
@@ -252,7 +262,8 @@ impl OverlayManager {
             .collect();
 
         // Remove overlays
-        self.overlays.retain(|o| o.namespace.as_ref() != Some(namespace));
+        self.overlays
+            .retain(|o| o.namespace.as_ref() != Some(namespace));
 
         // Delete markers
         for marker_id in markers_to_delete {
@@ -591,7 +602,9 @@ mod tests {
         let overlay3 = Overlay::new(
             &mut marker_list,
             25..30,
-            OverlayFace::Background { color: Color::Green },
+            OverlayFace::Background {
+                color: Color::Green,
+            },
         );
 
         manager.add(overlay1);

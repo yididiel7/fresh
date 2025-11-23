@@ -458,10 +458,7 @@ fn test_no_indent_after_close_brace() {
         .find(|l| l.trim() == "}")
         .expect("Should have closing brace line");
     let leading_spaces = close_brace_line.chars().take_while(|&c| c == ' ').count();
-    assert_eq!(
-        leading_spaces, 0,
-        "Closing brace should be at column 0"
-    );
+    assert_eq!(leading_spaces, 0, "Closing brace should be at column 0");
 }
 
 /// Test that typing a closing brace auto-dedents to the correct position

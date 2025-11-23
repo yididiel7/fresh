@@ -1,5 +1,5 @@
-use super::*;
 use super::normalize_path;
+use super::*;
 use crate::hooks::HookArgs;
 impl Editor {
     /// Determine the current keybinding context based on UI state
@@ -94,7 +94,9 @@ impl Editor {
 
         // Check for chord sequence matches first
         let key_event = crossterm::event::KeyEvent::new(code, modifiers);
-        let chord_result = self.keybindings.resolve_chord(&self.chord_state, &key_event, context);
+        let chord_result = self
+            .keybindings
+            .resolve_chord(&self.chord_state, &key_event, context);
 
         match chord_result {
             crate::keybindings::ChordResolution::Complete(action) => {
@@ -1310,7 +1312,10 @@ impl Editor {
                             if let Err(e) = self.open_file(&resolved_path) {
                                 self.set_status_message(format!("Error opening file: {e}"));
                             } else {
-                                self.set_status_message(format!("Opened {}", resolved_path.display()));
+                                self.set_status_message(format!(
+                                    "Opened {}",
+                                    resolved_path.display()
+                                ));
                             }
                         }
                         PromptType::SaveFileAs => {
@@ -1524,14 +1529,18 @@ impl Editor {
                                 if let Some(vs) = self.split_view_states.get_mut(&active_split) {
                                     vs.compose_width = None;
                                 }
-                                self.set_status_message("Compose width cleared (viewport)".to_string());
+                                self.set_status_message(
+                                    "Compose width cleared (viewport)".to_string(),
+                                );
                             } else {
                                 match trimmed.parse::<u16>() {
                                     Ok(val) if val > 0 => {
                                         if let Some(state) = self.buffers.get_mut(&buffer_id) {
                                             state.compose_width = Some(val);
                                         }
-                                        if let Some(vs) = self.split_view_states.get_mut(&active_split) {
+                                        if let Some(vs) =
+                                            self.split_view_states.get_mut(&active_split)
+                                        {
                                             vs.compose_width = Some(val);
                                         }
                                         self.set_status_message(format!(
@@ -1639,7 +1648,12 @@ impl Editor {
                             overlay_handle,
                         } => {
                             // Perform LSP rename with the new name from the prompt input
-                            self.perform_lsp_rename(input, original_text, start_pos, overlay_handle);
+                            self.perform_lsp_rename(
+                                input,
+                                original_text,
+                                start_pos,
+                                overlay_handle,
+                            );
                         }
                         PromptType::StopLspServer => {
                             // Stop the selected LSP server

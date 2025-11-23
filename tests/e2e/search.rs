@@ -524,7 +524,8 @@ fn test_search_highlights_update_on_scroll() {
         .all()
         .iter()
         .find(|o| {
-            o.namespace.as_ref()
+            o.namespace
+                .as_ref()
                 .map(|ns| ns.as_str().starts_with("search"))
                 .unwrap_or(false)
         })
@@ -555,7 +556,8 @@ fn test_search_highlights_update_on_scroll() {
         .all()
         .iter()
         .find(|o| {
-            o.namespace.as_ref()
+            o.namespace
+                .as_ref()
                 .map(|ns| ns.as_str().starts_with("search"))
                 .unwrap_or(false)
         })

@@ -63,9 +63,7 @@ use crate::position_history::PositionHistory;
 use crate::prompt::{Prompt, PromptType};
 use crate::split::{SplitManager, SplitViewState};
 use crate::state::EditorState;
-use crate::ui::{
-    FileExplorerRenderer, SplitRenderer, StatusBarRenderer, SuggestionsRenderer,
-};
+use crate::ui::{FileExplorerRenderer, SplitRenderer, StatusBarRenderer, SuggestionsRenderer};
 use crossterm::event::{KeyCode, KeyModifiers};
 use lsp_types::{Position, Range as LspRange, TextDocumentContentChangeEvent};
 use ratatui::{
@@ -322,7 +320,7 @@ pub struct Editor {
     /// Pending LSP confirmation - language name awaiting user confirmation
     /// When Some, a confirmation popup is shown asking user to approve LSP spawn
     pending_lsp_confirmation: Option<String>,
-    
+
     /// Whether auto-revert mode is enabled (automatically reload files when changed on disk)
     auto_revert_enabled: bool,
 
@@ -575,7 +573,9 @@ impl Editor {
             hover_symbol_overlay: None,
             search_state: None,
             search_namespace: crate::overlay::OverlayNamespace::from_string("search".to_string()),
-            lsp_diagnostic_namespace: crate::overlay::OverlayNamespace::from_string("lsp-diagnostic".to_string()),
+            lsp_diagnostic_namespace: crate::overlay::OverlayNamespace::from_string(
+                "lsp-diagnostic".to_string(),
+            ),
             pending_search_range: None,
             interactive_replace_state: None,
             lsp_status: String::new(),
@@ -932,10 +932,7 @@ impl Editor {
                             LspSpawnResult::Spawned => {
                                 // LSP is ready, get the handle and notify it about the file
                                 if let Some(client) = lsp.get_or_spawn(&language) {
-                                    tracing::info!(
-                                        "Sending didOpen to LSP for: {}",
-                                        uri.as_str()
-                                    );
+                                    tracing::info!("Sending didOpen to LSP for: {}", uri.as_str());
                                     if let Err(e) = client.did_open(uri.clone(), text, language) {
                                         tracing::warn!("Failed to send didOpen to LSP: {}", e);
                                     } else {
@@ -2308,32 +2305,36 @@ impl Editor {
         // Create a new watcher
         // We watch directories (not files) to handle atomic saves where editors
         // write to a temp file and rename it, which changes the file's inode
-        let watcher_result = notify::recommended_watcher(move |res: Result<notify::Event, notify::Error>| {
-            match res {
-                Ok(event) => {
-                    // Handle modify, create, and rename events
-                    // Rename is important for atomic saves (temp file + rename)
-                    let dominated = matches!(
-                        event.kind,
-                        notify::EventKind::Modify(_)
-                            | notify::EventKind::Create(_)
-                            | notify::EventKind::Remove(_)
-                    );
-                    if dominated {
-                        for path in event.paths {
-                            if let Err(e) = sender.send(AsyncMessage::FileChanged {
-                                path: path.display().to_string(),
-                            }) {
-                                tracing::error!("Failed to send file change notification: {}", e);
+        let watcher_result =
+            notify::recommended_watcher(move |res: Result<notify::Event, notify::Error>| {
+                match res {
+                    Ok(event) => {
+                        // Handle modify, create, and rename events
+                        // Rename is important for atomic saves (temp file + rename)
+                        let dominated = matches!(
+                            event.kind,
+                            notify::EventKind::Modify(_)
+                                | notify::EventKind::Create(_)
+                                | notify::EventKind::Remove(_)
+                        );
+                        if dominated {
+                            for path in event.paths {
+                                if let Err(e) = sender.send(AsyncMessage::FileChanged {
+                                    path: path.display().to_string(),
+                                }) {
+                                    tracing::error!(
+                                        "Failed to send file change notification: {}",
+                                        e
+                                    );
+                                }
                             }
                         }
                     }
+                    Err(e) => {
+                        tracing::error!("File watcher error: {}", e);
+                    }
                 }
-                Err(e) => {
-                    tracing::error!("File watcher error: {}", e);
-                }
-            }
-        });
+            });
 
         match watcher_result {
             Ok(mut watcher) => {
@@ -2403,7 +2404,9 @@ impl Editor {
                     // Detect language for this file
                     if let Some(language) = detect_language(path) {
                         // Get the new content
-                        let content = self.buffers.values()
+                        let content = self
+                            .buffers
+                            .values()
                             .find(|s| s.buffer.file_path() == Some(path))
                             .map(|state| state.buffer.to_string())
                             .unwrap_or_default();
@@ -2411,7 +2414,7 @@ impl Editor {
                         // Use full document sync - send the entire new content
                         if let Some(client) = lsp.get_or_spawn(&language) {
                             let content_change = TextDocumentContentChangeEvent {
-                                range: None,  // None means full document replacement
+                                range: None, // None means full document replacement
                                 range_length: None,
                                 text: content,
                             };
@@ -2430,7 +2433,9 @@ impl Editor {
         let path = PathBuf::from(changed_path);
 
         // Find buffers that have this file open
-        let buffer_ids: Vec<BufferId> = self.buffers.iter()
+        let buffer_ids: Vec<BufferId> = self
+            .buffers
+            .iter()
             .filter(|(_, state)| state.buffer.file_path() == Some(&path))
             .map(|(id, _)| *id)
             .collect();
@@ -3917,7 +3922,11 @@ impl Editor {
                     .split_view_states
                     .entry(target_split)
                     .or_insert_with(|| {
-                        SplitViewState::with_buffer(self.terminal_width, self.terminal_height, buffer_id)
+                        SplitViewState::with_buffer(
+                            self.terminal_width,
+                            self.terminal_height,
+                            buffer_id,
+                        )
                     });
                 view_state.compose_width = hints.compose_width;
                 view_state.compose_column_guides = hints.column_guides;
@@ -3937,7 +3946,11 @@ impl Editor {
                     .split_view_states
                     .entry(target_split)
                     .or_insert_with(|| {
-                        SplitViewState::with_buffer(self.terminal_width, self.terminal_height, buffer_id)
+                        SplitViewState::with_buffer(
+                            self.terminal_width,
+                            self.terminal_height,
+                            buffer_id,
+                        )
                     });
                 view_state.view_transform = Some(payload);
             }
@@ -4326,10 +4339,12 @@ impl Editor {
                                 req_id,
                                 buffer_id
                             );
-                            self.send_plugin_response(crate::plugin_api::PluginResponse::VirtualBufferCreated {
-                                buffer_id,
-                                request_id: req_id,
-                            });
+                            self.send_plugin_response(
+                                crate::plugin_api::PluginResponse::VirtualBufferCreated {
+                                    buffer_id,
+                                    request_id: req_id,
+                                },
+                            );
                         }
                     }
                     Err(e) => {
@@ -4701,7 +4716,9 @@ impl Editor {
                             view_state.cursors.primary_mut().move_to(position, false);
                             // Ensure the cursor is visible by scrolling the split's viewport
                             let cursor = view_state.cursors.primary().clone();
-                            view_state.viewport.ensure_visible(&mut state.buffer, &cursor);
+                            view_state
+                                .viewport
+                                .ensure_visible(&mut state.buffer, &cursor);
                             tracing::debug!(
                                 "SetBufferCursor: updated split {:?} (active={}) viewport top_byte={}",
                                 split_id,

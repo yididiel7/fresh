@@ -225,10 +225,7 @@ pub enum PluginCommand {
     },
 
     /// Enable/disable line numbers for a buffer
-    SetLineNumbers {
-        buffer_id: BufferId,
-        enabled: bool,
-    },
+    SetLineNumbers { buffer_id: BufferId, enabled: bool },
 
     /// Submit a transformed view stream for a viewport
     SubmitViewTransform {

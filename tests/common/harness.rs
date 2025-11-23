@@ -606,7 +606,8 @@ impl EditorTestHarness {
 
         let mut differences = Vec::new();
 
-        for (row, (test_line, vt100_line)) in test_lines.iter().zip(vt100_lines.iter()).enumerate() {
+        for (row, (test_line, vt100_line)) in test_lines.iter().zip(vt100_lines.iter()).enumerate()
+        {
             if test_line != vt100_line {
                 differences.push(format!(
                     "Row {}: TestBackend vs VT100 mismatch:\n  Test:  {:?}\n  VT100: {:?}",
@@ -644,7 +645,9 @@ impl EditorTestHarness {
     /// Get a specific cell from the vt100-parsed screen
     pub fn vt100_get_cell(&self, col: u16, row: u16) -> Option<String> {
         let screen = self.vt100_parser.screen();
-        screen.cell(row, col).map(|cell| cell.contents().to_string())
+        screen
+            .cell(row, col)
+            .map(|cell| cell.contents().to_string())
     }
 
     /// Get the current terminal buffer (what would be displayed)
@@ -916,7 +919,8 @@ impl EditorTestHarness {
             .all()
             .iter()
             .filter(|o| {
-                o.namespace.as_ref()
+                o.namespace
+                    .as_ref()
                     .map(|ns| ns.as_str().starts_with("search"))
                     .unwrap_or(false)
             })
@@ -1013,7 +1017,11 @@ impl EditorTestHarness {
     /// Get a specific row from the screen as a string
     pub fn get_screen_row(&self, row: usize) -> String {
         let screen = self.screen_to_string();
-        screen.lines().nth(row).map(|s| s.to_string()).unwrap_or_default()
+        screen
+            .lines()
+            .nth(row)
+            .map(|s| s.to_string())
+            .unwrap_or_default()
     }
 
     /// Get the menu bar row content

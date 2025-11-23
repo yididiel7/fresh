@@ -111,13 +111,19 @@ pub enum Event {
     },
 
     /// Remove overlay by handle
-    RemoveOverlay { handle: OverlayHandle },
+    RemoveOverlay {
+        handle: OverlayHandle,
+    },
 
     /// Remove all overlays in a range
-    RemoveOverlaysInRange { range: Range<usize> },
+    RemoveOverlaysInRange {
+        range: Range<usize>,
+    },
 
     /// Clear all overlays in a namespace
-    ClearNamespace { namespace: OverlayNamespace },
+    ClearNamespace {
+        namespace: OverlayNamespace,
+    },
 
     /// Clear all overlays
     ClearOverlays,

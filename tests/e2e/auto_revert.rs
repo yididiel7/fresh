@@ -140,7 +140,9 @@ fn test_auto_revert_preserves_scroll_position() {
     // Scroll down to somewhere in the middle
     use crossterm::event::{KeyCode, KeyModifiers};
     for _ in 0..10 {
-        harness.send_key(KeyCode::PageDown, KeyModifiers::NONE).unwrap();
+        harness
+            .send_key(KeyCode::PageDown, KeyModifiers::NONE)
+            .unwrap();
     }
     harness.render().unwrap();
 
@@ -185,7 +187,9 @@ fn test_auto_revert_skipped_when_buffer_modified() {
 
     // Make a local modification to the buffer
     use crossterm::event::{KeyCode, KeyModifiers};
-    harness.send_key(KeyCode::End, KeyModifiers::CONTROL).unwrap();
+    harness
+        .send_key(KeyCode::End, KeyModifiers::CONTROL)
+        .unwrap();
     harness.type_text(" - local edit").unwrap();
     harness.assert_buffer_content("Original content - local edit");
 
@@ -206,7 +210,8 @@ fn test_auto_revert_skipped_when_buffer_modified() {
     // Status message should indicate the file changed but wasn't reverted
     let status = harness.get_status_bar();
     assert!(
-        status.contains("changed on disk") || harness.get_buffer_content() == "Original content - local edit",
+        status.contains("changed on disk")
+            || harness.get_buffer_content() == "Original content - local edit",
         "Should either show warning or preserve local changes"
     );
 }
@@ -261,7 +266,9 @@ fn test_auto_revert_with_temp_rename_save() {
 
         // Write to a temp file first, then rename (atomic save pattern)
         // This changes the file's inode, which can break inotify watches
-        let temp_path = temp_dir.path().join(format!(".temp_rename_test.txt.{}", version));
+        let temp_path = temp_dir
+            .path()
+            .join(format!(".temp_rename_test.txt.{}", version));
         fs::write(&temp_path, &new_content).unwrap();
         fs::rename(&temp_path, &file_path).unwrap();
 

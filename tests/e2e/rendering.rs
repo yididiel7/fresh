@@ -560,7 +560,9 @@ fn test_ansi_rgb_color_rendering() {
     // Verify that block characters (█) are displayed with correct RGB colors
     // Check the first block character
     let first_block_style = harness.get_cell_style(gutter_width, content_row as u16);
-    println!("Style at first block position ({gutter_width}, {content_row}): {first_block_style:?}");
+    println!(
+        "Style at first block position ({gutter_width}, {content_row}): {first_block_style:?}"
+    );
 
     assert!(
         first_block_style.is_some(),

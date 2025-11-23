@@ -42,9 +42,7 @@
 use crate::commands::Suggestion;
 use crate::event::BufferId;
 use crate::event::SplitId;
-use crate::plugin_api::{
-    EditorStateSnapshot, LayoutHints, PluginCommand, ViewTokenWire,
-};
+use crate::plugin_api::{EditorStateSnapshot, LayoutHints, PluginCommand, ViewTokenWire};
 use anyhow::{anyhow, Result};
 use deno_core::{
     extension, op2, FastString, JsRuntime, ModuleLoadResponse, ModuleSource, ModuleSourceCode,
@@ -382,11 +380,7 @@ fn op_fresh_add_overlay(
 /// @param handle - The overlay handle to remove
 /// @returns true if overlay was removed
 #[op2(fast)]
-fn op_fresh_remove_overlay(
-    state: &mut OpState,
-    buffer_id: u32,
-    #[string] handle: String,
-) -> bool {
+fn op_fresh_remove_overlay(state: &mut OpState, buffer_id: u32, #[string] handle: String) -> bool {
     if let Some(runtime_state) = state.try_borrow::<Rc<RefCell<TsRuntimeState>>>() {
         let runtime_state = runtime_state.borrow();
         let result = runtime_state
@@ -638,15 +632,17 @@ fn op_fresh_submit_view_transform(
                 hints: hints.clone(),
             });
         // Also send full view transform payload for renderer consumption
-        let _ = runtime_state.command_sender.send(PluginCommand::SubmitViewTransform {
-            buffer_id: BufferId(buffer_id as usize),
-            split_id,
-            payload: crate::plugin_api::ViewTransformPayload {
-                range: start as usize..end as usize,
-                tokens,
-                layout_hints: Some(hints),
-            },
-        });
+        let _ = runtime_state
+            .command_sender
+            .send(PluginCommand::SubmitViewTransform {
+                buffer_id: BufferId(buffer_id as usize),
+                split_id,
+                payload: crate::plugin_api::ViewTransformPayload {
+                    range: start as usize..end as usize,
+                    tokens,
+                    layout_hints: Some(hints),
+                },
+            });
         return result.is_ok();
     }
     false
@@ -3159,28 +3155,28 @@ impl TypeScriptPluginManager {
                     "selected_index": selected_index,
                 })
             }
-        HookArgs::PromptCancelled { prompt_type, input } => {
-            serde_json::json!({
-                "prompt_type": prompt_type,
-                "input": input,
-            })
-        }
-        HookArgs::KeyboardShortcuts { bindings } => {
-            let entries: Vec<serde_json::Value> = bindings
-                .iter()
-                .map(|(key, action)| {
-                    serde_json::json!({
-                        "key": key,
-                        "action": action,
-                    })
+            HookArgs::PromptCancelled { prompt_type, input } => {
+                serde_json::json!({
+                    "prompt_type": prompt_type,
+                    "input": input,
                 })
-                .collect();
-            serde_json::json!({ "bindings": entries })
-        }
-        HookArgs::ManualPage => {
-            serde_json::json!({})
-        }
-        HookArgs::LspReferences { symbol, locations } => {
+            }
+            HookArgs::KeyboardShortcuts { bindings } => {
+                let entries: Vec<serde_json::Value> = bindings
+                    .iter()
+                    .map(|(key, action)| {
+                        serde_json::json!({
+                            "key": key,
+                            "action": action,
+                        })
+                    })
+                    .collect();
+                serde_json::json!({ "bindings": entries })
+            }
+            HookArgs::ManualPage => {
+                serde_json::json!({})
+            }
+            HookArgs::LspReferences { symbol, locations } => {
                 let locs: Vec<serde_json::Value> = locations
                     .iter()
                     .map(|loc| {
@@ -3613,10 +3609,7 @@ mod tests {
         }
 
         match &commands[4] {
-            PluginCommand::RemoveOverlay {
-                buffer_id,
-                handle,
-            } => {
+            PluginCommand::RemoveOverlay { buffer_id, handle } => {
                 assert_eq!(buffer_id.0, 42);
                 assert_eq!(handle.as_str(), "test-overlay");
             }

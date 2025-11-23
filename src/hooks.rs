@@ -128,9 +128,7 @@ pub enum HookArgs {
     PromptCancelled { prompt_type: String, input: String },
 
     /// Request keyboard shortcuts data (key, action) for the help buffer
-    KeyboardShortcuts {
-        bindings: Vec<(String, String)>,
-    },
+    KeyboardShortcuts { bindings: Vec<(String, String)> },
 
     /// Request the manual/help page buffer
     ManualPage,

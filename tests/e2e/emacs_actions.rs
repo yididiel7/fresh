@@ -34,9 +34,7 @@ fn test_transpose_chars_basic() {
     harness.assert_buffer_content("abc");
 
     // Move cursor to position 2 (between 'b' and 'c')
-    harness
-        .send_key(KeyCode::Left, KeyModifiers::NONE)
-        .unwrap();
+    harness.send_key(KeyCode::Left, KeyModifiers::NONE).unwrap();
     harness.render().unwrap();
 
     // Execute transpose_chars (Ctrl+T)
@@ -103,12 +101,8 @@ fn test_open_line_basic() {
     harness.render().unwrap();
 
     // Move cursor to middle of the word
-    harness
-        .send_key(KeyCode::Left, KeyModifiers::NONE)
-        .unwrap();
-    harness
-        .send_key(KeyCode::Left, KeyModifiers::NONE)
-        .unwrap();
+    harness.send_key(KeyCode::Left, KeyModifiers::NONE).unwrap();
+    harness.send_key(KeyCode::Left, KeyModifiers::NONE).unwrap();
     harness.render().unwrap();
 
     let cursor_before = harness.cursor_position();
@@ -164,9 +158,7 @@ fn test_recenter_basic() {
 
     // Move cursor down to get it somewhere in the middle
     for _ in 0..50 {
-        harness
-            .send_key(KeyCode::Down, KeyModifiers::NONE)
-            .unwrap();
+        harness.send_key(KeyCode::Down, KeyModifiers::NONE).unwrap();
     }
     harness.render().unwrap();
 
@@ -202,8 +194,11 @@ fn test_recenter_basic() {
     );
 
     // Cursor should be around line 50 (0-indexed)
-    assert!(cursor_line_after >= 49 && cursor_line_after <= 51,
-        "Cursor should be around line 50, got {}", cursor_line_after);
+    assert!(
+        cursor_line_after >= 49 && cursor_line_after <= 51,
+        "Cursor should be around line 50, got {}",
+        cursor_line_after
+    );
 }
 
 // =============================================================================
@@ -331,19 +326,27 @@ fn test_escape_cancels_mark_mode() {
 
     // Verify mark mode is active
     let cursor = harness.editor().active_state().cursors.primary();
-    assert_eq!(cursor.anchor, Some(0), "Anchor should be at 0 before escape");
-    assert!(!cursor.deselect_on_move, "deselect_on_move should be false (mark mode active)");
+    assert_eq!(
+        cursor.anchor,
+        Some(0),
+        "Anchor should be at 0 before escape"
+    );
+    assert!(
+        !cursor.deselect_on_move,
+        "deselect_on_move should be false (mark mode active)"
+    );
 
     // Press Escape to cancel mark mode
-    harness
-        .send_key(KeyCode::Esc, KeyModifiers::NONE)
-        .unwrap();
+    harness.send_key(KeyCode::Esc, KeyModifiers::NONE).unwrap();
     harness.render().unwrap();
 
     // Verify mark mode is cancelled
     let cursor = harness.editor().active_state().cursors.primary();
     assert_eq!(cursor.anchor, None, "Anchor should be cleared after escape");
-    assert!(cursor.deselect_on_move, "deselect_on_move should be true (mark mode cancelled)");
+    assert!(
+        cursor.deselect_on_move,
+        "deselect_on_move should be true (mark mode cancelled)"
+    );
 }
 
 /// Test Ctrl+G cancels mark mode (Emacs-style keyboard-quit)
@@ -382,5 +385,8 @@ fn test_ctrl_g_cancels_mark_mode() {
     // Verify mark mode is cancelled
     let cursor = harness.editor().active_state().cursors.primary();
     assert_eq!(cursor.anchor, None, "Anchor should be cleared after C-g");
-    assert!(cursor.deselect_on_move, "deselect_on_move should be true (mark mode cancelled)");
+    assert!(
+        cursor.deselect_on_move,
+        "deselect_on_move should be true (mark mode cancelled)"
+    );
 }
