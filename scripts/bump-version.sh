@@ -15,17 +15,19 @@ NC='\033[0m' # No Color
 
 # Print usage
 usage() {
-    echo "Usage: $0 <new-version>"
+    echo "Usage: $0 [patch|minor|major]"
     echo ""
     echo "Examples:"
-    echo "  $0 0.2.0"
-    echo "  $0 1.0.0"
-    echo "  $0 0.1.1-beta.1"
+    echo "  $0          # Bump patch version (default): 0.1.0 -> 0.1.1"
+    echo "  $0 patch    # Bump patch version: 0.1.0 -> 0.1.1"
+    echo "  $0 minor    # Bump minor version: 0.1.0 -> 0.2.0"
+    echo "  $0 major    # Bump major version: 0.1.0 -> 1.0.0"
     echo ""
     echo "The script will:"
-    echo "  1. Update version in Cargo.toml"
-    echo "  2. Update Cargo.lock by running 'cargo build'"
-    echo "  3. Show you what changed"
+    echo "  1. Read current version from Cargo.toml"
+    echo "  2. Calculate the new version"
+    echo "  3. Ask for confirmation"
+    echo "  4. Update Cargo.toml and Cargo.lock"
     echo ""
     echo "After running this script, you should:"
     echo "  1. Review the changes"
@@ -34,21 +36,6 @@ usage() {
     echo "  4. Push: git push origin main && git push origin vX.Y.Z"
     exit 1
 }
-
-# Check arguments
-if [ $# -ne 1 ]; then
-    usage
-fi
-
-NEW_VERSION="$1"
-
-# Validate version format (basic check)
-if ! echo "$NEW_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$'; then
-    echo -e "${RED}Error: Invalid version format${NC}"
-    echo "Version must be in format: MAJOR.MINOR.PATCH (e.g., 0.2.0)"
-    echo "Or with pre-release: MAJOR.MINOR.PATCH-PRERELEASE (e.g., 0.2.0-beta.1)"
-    exit 1
-fi
 
 # Check if we're in the project root
 if [ ! -f "Cargo.toml" ]; then
@@ -60,14 +47,46 @@ fi
 # Get current version
 CURRENT_VERSION=$(grep '^version = ' Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
 
-echo -e "${BLUE}Version Bump${NC}"
+# Strip any pre-release suffix for version calculation
+BASE_VERSION=$(echo "$CURRENT_VERSION" | sed 's/-.*//')
+
+# Parse version components
+MAJOR=$(echo "$BASE_VERSION" | cut -d. -f1)
+MINOR=$(echo "$BASE_VERSION" | cut -d. -f2)
+PATCH=$(echo "$BASE_VERSION" | cut -d. -f3)
+
+# Determine bump type (default to patch)
+BUMP_TYPE="${1:-patch}"
+
+# Calculate new version based on bump type
+case "$BUMP_TYPE" in
+    patch)
+        NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
+        ;;
+    minor)
+        NEW_VERSION="$MAJOR.$((MINOR + 1)).0"
+        ;;
+    major)
+        NEW_VERSION="$((MAJOR + 1)).0.0"
+        ;;
+    -h|--help|help)
+        usage
+        ;;
+    *)
+        echo -e "${RED}Error: Invalid bump type '$BUMP_TYPE'${NC}"
+        echo "Valid options: patch, minor, major"
+        exit 1
+        ;;
+esac
+
+echo -e "${BLUE}Version Bump ($BUMP_TYPE)${NC}"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo -e "Current version: ${YELLOW}$CURRENT_VERSION${NC}"
 echo -e "New version:     ${GREEN}$NEW_VERSION${NC}"
 echo ""
 
 # Ask for confirmation
-read -p "Continue with version bump? (y/N) " -n 1 -r
+read -p "Bump $BUMP_TYPE version $CURRENT_VERSION -> $NEW_VERSION? (y/N) " -n 1 -r
 echo
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     echo "Aborted."
@@ -109,12 +128,44 @@ fi
 
 echo ""
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${GREEN}✓ Version bump complete!${NC}"
 echo ""
-echo "Next steps:"
-echo -e "  1. Review changes: ${YELLOW}git diff${NC}"
-echo -e "  2. Commit changes: ${YELLOW}git add Cargo.toml Cargo.lock && git commit -m 'Bump version to $NEW_VERSION'${NC}"
-echo -e "  3. Create tag:     ${YELLOW}git tag v$NEW_VERSION${NC}"
-echo -e "  4. Push:           ${YELLOW}git push origin main && git push origin v$NEW_VERSION${NC}"
+
+# Ask for confirmation to commit, tag, and push
+read -p "Commit, tag, and push v$NEW_VERSION? (y/N) " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo ""
+    echo -e "${YELLOW}Changes made but not committed.${NC}"
+    echo ""
+    echo "To complete manually:"
+    echo -e "  1. Commit changes: ${YELLOW}git add Cargo.toml Cargo.lock && git commit -m 'Bump version to $NEW_VERSION'${NC}"
+    echo -e "  2. Create tag:     ${YELLOW}git tag v$NEW_VERSION${NC}"
+    echo -e "  3. Push:           ${YELLOW}git push && git push origin v$NEW_VERSION${NC}"
+    exit 0
+fi
+
+# Get current branch
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
 echo ""
-echo "The GitHub Actions workflow will automatically create a release when you push the tag."
+echo -e "${BLUE}Step 4:${NC} Committing changes..."
+git add Cargo.toml Cargo.lock
+git commit -m "Bump version to $NEW_VERSION"
+echo -e "${GREEN}✓${NC} Committed"
+
+echo ""
+echo -e "${BLUE}Step 5:${NC} Creating tag v$NEW_VERSION..."
+git tag "v$NEW_VERSION"
+echo -e "${GREEN}✓${NC} Tagged"
+
+echo ""
+echo -e "${BLUE}Step 6:${NC} Pushing to origin..."
+git push origin "$CURRENT_BRANCH"
+git push origin "v$NEW_VERSION"
+echo -e "${GREEN}✓${NC} Pushed"
+
+echo ""
+echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${GREEN}✓ Version $NEW_VERSION released!${NC}"
+echo ""
+echo "The GitHub Actions workflow will automatically create a release from the tag."
