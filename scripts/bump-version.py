@@ -155,44 +155,17 @@ def main() -> None:
     print(f"{GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{NC}")
     print("")
 
-    print("You can optionally generate release notes for the new version using Gemini.")
-    reply = input("Generate release notes with Gemini? (y/N) ").lower()
-    if reply == 'y':
-        try:
-            run_command(["which", "gemini"], capture_output=True)
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            print(f"{RED}Error: gemini command not found. Please install Gemini CLI.{NC}")
-        else:
-            print("")
-            print(f"{BLUE}Generating release notes with Gemini...{NC}")
-            previous_tag = get_previous_tag()
-            if previous_tag:
-                git_log_result = run_command(["git", "log", f"{previous_tag}..HEAD", "--oneline"], capture_output=True)
-                git_log = git_log_result.stdout.strip()
-                
-                prompt = f"""Please generate release notes based on the following git commits. The release notes should be in Markdown format, with sections for Features, Bug Fixes, and other changes.
 
-GIT_COMMITS:
-{git_log}
-"""
-                print("The following prompt will be sent to Gemini:")
-                print("--------------------------------------------------")
-                print(prompt)
-                print("--------------------------------------------------")
-                
-                try:
-                    with open("RELEASE_NOTES.md", "w") as f:
-                        run_command(["gemini", prompt], check=True)
-                    print(f"{GREEN}✓ Release notes generated and saved to RELEASE_NOTES.md{NC}")
-                    print("Please review the generated release notes and edit as needed.")
-                    print("You can use the content of this file when creating the GitHub release.")
-
-                except subprocess.CalledProcessError as e:
-                    print(f"{RED}Error generating release notes with Gemini: {e}{NC}")
-            else:
-                print(f"{YELLOW}Warning: Could not determine previous tag. Skipping release notes generation.{NC}")
 
     print("")
+    release_notes_content = ""
+    release_notes_path = Path("RELEASE_NOTES.md")
+    if release_notes_path.exists():
+        release_notes_content = release_notes_path.read_text().strip()
+        print(f"{BLUE}Found existing RELEASE_NOTES.md.{NC}")
+    else:
+        print(f"{YELLOW}Warning: RELEASE_NOTES.md not found. Tag will not include release notes.{NC}")
+
     reply = input(f"Commit, tag, and push v{new_version}? (y/N) ").lower()
     if reply != "y":
         print("")
@@ -200,7 +173,10 @@ GIT_COMMITS:
         print("")
         print("To complete manually:")
         print(f"  1. Commit changes: {YELLOW}git add Cargo.toml Cargo.lock && git commit -m 'Bump version to {new_version}'{NC}")
-        print(f"  2. Create tag:     {YELLOW}git tag v{new_version}{NC}")
+        if release_notes_content:
+            print(f"  2. Create tag:     {YELLOW}git tag -a v{new_version} -F RELEASE_NOTES.md{NC}")
+        else:
+            print(f"  2. Create tag:     {YELLOW}git tag v{new_version}{NC}")
         print(f"  3. Push:           {YELLOW}git push && git push origin v{new_version}{NC}")
         sys.exit(0)
 
@@ -216,7 +192,10 @@ GIT_COMMITS:
 
         print("")
         print(f"{BLUE}Step 5:{NC} Creating tag v{new_version}...")
-        run_command(["git", "tag", f"v{new_version}"])
+        if release_notes_content:
+            run_command(["git", "tag", "-a", f"v{new_version}", "-F", "RELEASE_NOTES.md"])
+        else:
+            run_command(["git", "tag", f"v{new_version}"])
         print(f"{GREEN}✓{NC} Tagged")
 
         print("")
