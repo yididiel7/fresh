@@ -1080,6 +1080,144 @@ fn test_buffer_modified_single_line_in_multi_line_file() {
     );
 }
 
+/// Test that manually deleting added text (without undo) clears the indicator
+/// This tests that the diff compares actual content, not just tree structure
+#[test]
+fn test_buffer_modified_clears_after_manual_delete_restores_content() {
+    let repo = GitTestRepo::new();
+
+    // Create and commit a file
+    let initial_content = "line 01\nline 02\nline 03\nline 04\nline 05\n";
+    repo.create_file("test.txt", initial_content);
+    repo.git_add_all();
+    repo.git_commit("Initial commit");
+
+    repo.setup_buffer_modified_plugin();
+
+    let mut harness = EditorTestHarness::with_config_and_working_dir(
+        120,
+        40,
+        Config::default(),
+        repo.path.clone(),
+    )
+    .unwrap();
+
+    open_file(&mut harness, &repo.path, "test.txt");
+    wait_for_async(&mut harness, 10);
+
+    // Go to line 3, end of line, add text
+    harness.send_key(KeyCode::Down, KeyModifiers::NONE).unwrap();
+    harness.send_key(KeyCode::Down, KeyModifiers::NONE).unwrap();
+    harness.send_key(KeyCode::End, KeyModifiers::NONE).unwrap();
+    harness.type_text(" ADDED").unwrap();
+    harness.render().unwrap();
+    wait_for_async(&mut harness, 10);
+
+    let screen_after_add = harness.screen_to_string();
+    let indicators_after_add = get_indicator_lines(&screen_after_add, "│");
+    println!("=== After adding text ===\n{}", screen_after_add);
+    assert!(
+        indicators_after_add.contains(&2),
+        "Line 2 (0-indexed) should have indicator after adding text, got {:?}",
+        indicators_after_add
+    );
+
+    // Now manually delete the " ADDED" text (6 chars) using backspace
+    for _ in 0..6 {
+        harness
+            .send_key(KeyCode::Backspace, KeyModifiers::NONE)
+            .unwrap();
+    }
+    harness.render().unwrap();
+    wait_for_async(&mut harness, 10);
+
+    let screen_after_delete = harness.screen_to_string();
+    let indicators_after_delete = get_indicator_lines(&screen_after_delete, "│");
+    println!(
+        "=== After manually deleting text ===\n{}",
+        screen_after_delete
+    );
+    assert!(
+        indicators_after_delete.is_empty(),
+        "Indicators should clear when content is manually restored to saved state, got {:?}",
+        indicators_after_delete
+    );
+}
+
+/// Test that pasting original content back clears the indicator
+#[test]
+fn test_buffer_modified_clears_after_paste_restores_content() {
+    let repo = GitTestRepo::new();
+
+    // Create and commit a file
+    let initial_content = "hello world\n";
+    repo.create_file("test.txt", initial_content);
+    repo.git_add_all();
+    repo.git_commit("Initial commit");
+
+    repo.setup_buffer_modified_plugin();
+
+    let mut harness = EditorTestHarness::with_config_and_working_dir(
+        120,
+        40,
+        Config::default(),
+        repo.path.clone(),
+    )
+    .unwrap();
+
+    open_file(&mut harness, &repo.path, "test.txt");
+    wait_for_async(&mut harness, 10);
+
+    // Select "world", cut it (Ctrl+X cuts and copies)
+    // Go to position of 'w' in "world"
+    harness.send_key(KeyCode::Home, KeyModifiers::NONE).unwrap();
+    for _ in 0..6 {
+        // Move past "hello "
+        harness
+            .send_key(KeyCode::Right, KeyModifiers::NONE)
+            .unwrap();
+    }
+    // Select "world" (5 chars)
+    for _ in 0..5 {
+        harness
+            .send_key(KeyCode::Right, KeyModifiers::SHIFT)
+            .unwrap();
+    }
+    // Cut (copies to clipboard and deletes)
+    harness
+        .send_key(KeyCode::Char('x'), KeyModifiers::CONTROL)
+        .unwrap();
+    harness.render().unwrap();
+    wait_for_async(&mut harness, 10);
+
+    let screen_after_cut = harness.screen_to_string();
+    let indicators_after_cut = get_indicator_lines(&screen_after_cut, "│");
+    println!("=== After cutting 'world' ===\n{}", screen_after_cut);
+    assert!(
+        !indicators_after_cut.is_empty(),
+        "Should have indicator after cutting text"
+    );
+
+    // Now paste "world" back
+    harness
+        .send_key(KeyCode::Char('v'), KeyModifiers::CONTROL)
+        .unwrap();
+    harness.render().unwrap();
+    wait_for_async(&mut harness, 10);
+
+    let screen_after_paste = harness.screen_to_string();
+    let indicators_after_paste = get_indicator_lines(&screen_after_paste, "│");
+    println!(
+        "=== After pasting 'world' back ===\n{}",
+        screen_after_paste
+    );
+    assert!(
+        indicators_after_paste.is_empty(),
+        "Indicators should clear when content is restored via paste, got {:?}",
+        indicators_after_paste
+    );
+}
+
 /// Test that adding lines shifts indicators correctly
 #[test]
 fn test_indicator_line_shifting() {

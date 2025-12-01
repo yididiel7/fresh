@@ -427,7 +427,174 @@ impl TextBuffer {
     }
 
     /// Diff the current piece tree against the last saved snapshot.
+    ///
+    /// This compares actual byte content, not just tree structure. This means
+    /// that if you delete text and then paste it back, the diff will correctly
+    /// show no changes (even though the tree structure differs).
     pub fn diff_since_saved(&self) -> PieceTreeDiff {
+        // First, quick check: if tree roots are identical (Arc pointer equality),
+        // the content is definitely the same.
+        if Arc::ptr_eq(&self.saved_root, &self.piece_tree.root()) {
+            return PieceTreeDiff {
+                equal: true,
+                byte_ranges: vec![0..0],
+                line_ranges: Some(vec![0..0]),
+            };
+        }
+
+        let saved_bytes = self.tree_total_bytes(&self.saved_root);
+        let current_bytes = self.piece_tree.total_bytes();
+
+        // For small/medium files, compare actual content line by line
+        let max_bytes = saved_bytes.max(current_bytes);
+        if max_bytes <= 10 * 1024 * 1024 {
+            // 10MB threshold
+            let saved_content = self.extract_content_from_tree(&self.saved_root, saved_bytes);
+            let current_content = self.get_text_range(0, current_bytes);
+
+            match (saved_content, current_content) {
+                (Some(saved), Some(current)) => {
+                    // Compare content line by line - handles both same and different lengths
+                    return self.diff_content_by_lines(&saved, &current);
+                }
+                _ => {
+                    // Couldn't read content, fall back to structure-based diff
+                    return self.diff_trees_by_structure();
+                }
+            }
+        }
+
+        // Large file - use structure-based diff (compares tree structure, not content)
+        self.diff_trees_by_structure()
+    }
+
+    /// Helper to get total bytes from a tree root
+    fn tree_total_bytes(&self, root: &Arc<crate::model::piece_tree::PieceTreeNode>) -> usize {
+        use crate::model::piece_tree::PieceTreeNode;
+        match root.as_ref() {
+            PieceTreeNode::Internal {
+                left_bytes,
+                left,
+                right,
+                ..
+            } => left_bytes + self.tree_total_bytes(right),
+            PieceTreeNode::Leaf { bytes, .. } => *bytes,
+        }
+    }
+
+    /// Extract content from a saved tree root
+    fn extract_content_from_tree(
+        &self,
+        root: &Arc<crate::model::piece_tree::PieceTreeNode>,
+        total_bytes: usize,
+    ) -> Option<Vec<u8>> {
+        use crate::model::piece_tree::PieceTreeNode;
+
+        let mut result = Vec::with_capacity(total_bytes);
+        self.collect_content_from_node(root, &mut result)?;
+        Some(result)
+    }
+
+    fn collect_content_from_node(
+        &self,
+        node: &Arc<crate::model::piece_tree::PieceTreeNode>,
+        result: &mut Vec<u8>,
+    ) -> Option<()> {
+        use crate::model::piece_tree::PieceTreeNode;
+
+        match node.as_ref() {
+            PieceTreeNode::Internal { left, right, .. } => {
+                self.collect_content_from_node(left, result)?;
+                self.collect_content_from_node(right, result)?;
+            }
+            PieceTreeNode::Leaf {
+                location,
+                offset,
+                bytes,
+                ..
+            } => {
+                if *bytes > 0 {
+                    let buf = self.buffers.get(location.buffer_id())?;
+                    let data = buf.get_data()?;
+                    let slice = data.get(*offset..*offset + *bytes)?;
+                    result.extend_from_slice(slice);
+                }
+            }
+        }
+        Some(())
+    }
+
+    /// Compare two content buffers line by line and return diff
+    fn diff_content_by_lines(&self, saved: &[u8], current: &[u8]) -> PieceTreeDiff {
+        let mut changed_lines = Vec::new();
+        let mut saved_iter = saved.split(|&b| b == b'\n').peekable();
+        let mut current_iter = current.split(|&b| b == b'\n').peekable();
+        let mut line = 0;
+
+        loop {
+            match (saved_iter.next(), current_iter.next()) {
+                (Some(saved_line), Some(current_line)) => {
+                    if saved_line != current_line {
+                        changed_lines.push(line..line + 1);
+                    }
+                    line += 1;
+                }
+                (Some(_), None) => {
+                    // Saved has more lines - mark deletion point
+                    changed_lines.push(line..line + 1);
+                    break;
+                }
+                (None, Some(_)) => {
+                    // Current has more lines - mark all as added
+                    while current_iter.next().is_some() {
+                        changed_lines.push(line..line + 1);
+                        line += 1;
+                    }
+                    changed_lines.push(line..line + 1);
+                    break;
+                }
+                (None, None) => break,
+            }
+        }
+
+        if changed_lines.is_empty() {
+            PieceTreeDiff {
+                equal: true,
+                byte_ranges: vec![0..0],
+                line_ranges: Some(vec![0..0]),
+            }
+        } else {
+            // Merge adjacent ranges
+            let merged = Self::merge_adjacent_ranges(changed_lines);
+            PieceTreeDiff {
+                equal: false,
+                byte_ranges: vec![], // Not computed for line-based diff
+                line_ranges: Some(merged),
+            }
+        }
+    }
+
+    fn merge_adjacent_ranges(ranges: Vec<std::ops::Range<usize>>) -> Vec<std::ops::Range<usize>> {
+        if ranges.is_empty() {
+            return ranges;
+        }
+        let mut merged = Vec::new();
+        let mut current = ranges[0].clone();
+
+        for range in ranges.into_iter().skip(1) {
+            if range.start <= current.end {
+                current.end = current.end.max(range.end);
+            } else {
+                merged.push(current);
+                current = range;
+            }
+        }
+        merged.push(current);
+        merged
+    }
+
+    /// Fall back to structure-based diff (original implementation)
+    fn diff_trees_by_structure(&self) -> PieceTreeDiff {
         crate::model::piece_tree_diff::diff_piece_trees(
             &self.saved_root,
             &self.piece_tree.root(),
