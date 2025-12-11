@@ -61,4 +61,4 @@ jobs:
         run: |
           echo "Publishing npm package for version ${VERSION}"
           ls -la dist-artifacts/
-          npm publish --access public --provenance dist-artifacts/fresh-editor-npm-package.tar.gz
+          npm publish --access public --provenance ./dist-artifacts/fresh-editor-npm-package.tar.gz
