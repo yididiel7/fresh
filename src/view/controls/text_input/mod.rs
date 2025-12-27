@@ -120,7 +120,7 @@ impl TextInputState {
         self.value.remove(self.cursor);
     }
 
-    /// Move cursor left
+    /// Move cursor left (to previous character boundary)
     pub fn move_left(&mut self) {
         if self.cursor > 0 {
             // Find the previous character boundary
@@ -132,7 +132,7 @@ impl TextInputState {
         }
     }
 
-    /// Move cursor right
+    /// Move cursor right (to next character boundary)
     pub fn move_right(&mut self) {
         if self.cursor < self.value.len() {
             // Find the next character boundary
