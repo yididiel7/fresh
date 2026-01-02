@@ -37,7 +37,7 @@ pub enum LineEnding {
 impl Default for LineEnding {
     fn default() -> Self {
         // Default to LF (Unix) for new files
-        LineEnding::LF
+        Self::LF
     }
 }
 
@@ -45,18 +45,18 @@ impl LineEnding {
     /// Get the string representation of this line ending
     pub fn as_str(&self) -> &'static str {
         match self {
-            LineEnding::LF => "\n",
-            LineEnding::CRLF => "\r\n",
-            LineEnding::CR => "\r",
+            Self::LF => "\n",
+            Self::CRLF => "\r\n",
+            Self::CR => "\r",
         }
     }
 
     /// Get the display name for status bar
     pub fn display_name(&self) -> &'static str {
         match self {
-            LineEnding::LF => "LF",
-            LineEnding::CRLF => "CRLF",
-            LineEnding::CR => "CR",
+            Self::LF => "LF",
+            Self::CRLF => "CRLF",
+            Self::CR => "CR",
         }
     }
 }
@@ -78,8 +78,7 @@ impl LineNumber {
     /// Get the line number value
     pub fn value(&self) -> usize {
         match self {
-            LineNumber::Absolute(line) => *line,
-            LineNumber::Relative { line, .. } => *line,
+            Self::Absolute(line) | Self::Relative { line, .. } => *line,
         }
     }
 
@@ -96,8 +95,8 @@ impl LineNumber {
     /// Format the line number for display
     pub fn format(&self) -> String {
         match self {
-            LineNumber::Absolute(line) => format!("{}", line + 1),
-            LineNumber::Relative { line, .. } => format!("~{}", line + 1),
+            Self::Absolute(line) => format!("{}", line + 1),
+            Self::Relative { line, .. } => format!("~{}", line + 1),
         }
     }
 }

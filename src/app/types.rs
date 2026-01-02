@@ -363,24 +363,24 @@ pub enum TabContextMenuItem {
 
 impl TabContextMenuItem {
     /// Get all menu items in order
-    pub fn all() -> &'static [TabContextMenuItem] {
+    pub fn all() -> &'static [Self] {
         &[
-            TabContextMenuItem::Close,
-            TabContextMenuItem::CloseOthers,
-            TabContextMenuItem::CloseToRight,
-            TabContextMenuItem::CloseToLeft,
-            TabContextMenuItem::CloseAll,
+            Self::Close,
+            Self::CloseOthers,
+            Self::CloseToRight,
+            Self::CloseToLeft,
+            Self::CloseAll,
         ]
     }
 
     /// Get the display label for this menu item
     pub fn label(&self) -> String {
         match self {
-            TabContextMenuItem::Close => t!("tab.close").to_string(),
-            TabContextMenuItem::CloseOthers => t!("tab.close_others").to_string(),
-            TabContextMenuItem::CloseToRight => t!("tab.close_to_right").to_string(),
-            TabContextMenuItem::CloseToLeft => t!("tab.close_to_left").to_string(),
-            TabContextMenuItem::CloseAll => t!("tab.close_all").to_string(),
+            Self::Close => t!("tab.close").to_string(),
+            Self::CloseOthers => t!("tab.close_others").to_string(),
+            Self::CloseToRight => t!("tab.close_to_right").to_string(),
+            Self::CloseToLeft => t!("tab.close_to_left").to_string(),
+            Self::CloseAll => t!("tab.close_all").to_string(),
         }
     }
 }
@@ -454,12 +454,12 @@ impl TabDropZone {
     /// Get the split ID this drop zone is associated with
     pub fn split_id(&self) -> SplitId {
         match self {
-            TabDropZone::TabBar(id, _) => *id,
-            TabDropZone::SplitLeft(id) => *id,
-            TabDropZone::SplitRight(id) => *id,
-            TabDropZone::SplitTop(id) => *id,
-            TabDropZone::SplitBottom(id) => *id,
-            TabDropZone::SplitCenter(id) => *id,
+            Self::TabBar(id, _)
+            | Self::SplitLeft(id)
+            | Self::SplitRight(id)
+            | Self::SplitTop(id)
+            | Self::SplitBottom(id)
+            | Self::SplitCenter(id) => *id,
         }
     }
 }

@@ -158,13 +158,13 @@ impl CursorStyle {
     pub fn to_crossterm_style(self) -> crossterm::cursor::SetCursorStyle {
         use crossterm::cursor::SetCursorStyle;
         match self {
-            CursorStyle::Default => SetCursorStyle::DefaultUserShape,
-            CursorStyle::BlinkingBlock => SetCursorStyle::BlinkingBlock,
-            CursorStyle::SteadyBlock => SetCursorStyle::SteadyBlock,
-            CursorStyle::BlinkingBar => SetCursorStyle::BlinkingBar,
-            CursorStyle::SteadyBar => SetCursorStyle::SteadyBar,
-            CursorStyle::BlinkingUnderline => SetCursorStyle::BlinkingUnderScore,
-            CursorStyle::SteadyUnderline => SetCursorStyle::SteadyUnderScore,
+            Self::Default => SetCursorStyle::DefaultUserShape,
+            Self::BlinkingBlock => SetCursorStyle::BlinkingBlock,
+            Self::SteadyBlock => SetCursorStyle::SteadyBlock,
+            Self::BlinkingBar => SetCursorStyle::BlinkingBar,
+            Self::SteadyBar => SetCursorStyle::SteadyBar,
+            Self::BlinkingUnderline => SetCursorStyle::BlinkingUnderScore,
+            Self::SteadyUnderline => SetCursorStyle::SteadyUnderScore,
         }
     }
 
@@ -185,13 +185,13 @@ impl CursorStyle {
     /// Convert to string representation
     pub fn as_str(self) -> &'static str {
         match self {
-            CursorStyle::Default => "default",
-            CursorStyle::BlinkingBlock => "blinking_block",
-            CursorStyle::SteadyBlock => "steady_block",
-            CursorStyle::BlinkingBar => "blinking_bar",
-            CursorStyle::SteadyBar => "steady_bar",
-            CursorStyle::BlinkingUnderline => "blinking_underline",
-            CursorStyle::SteadyUnderline => "steady_underline",
+            Self::Default => "default",
+            Self::BlinkingBlock => "blinking_block",
+            Self::SteadyBlock => "steady_block",
+            Self::BlinkingBar => "blinking_bar",
+            Self::SteadyBar => "steady_bar",
+            Self::BlinkingUnderline => "blinking_underline",
+            Self::SteadyUnderline => "steady_underline",
         }
     }
 }
@@ -259,7 +259,7 @@ pub enum LineEndingOption {
 
 impl Default for LineEndingOption {
     fn default() -> Self {
-        LineEndingOption::Lf
+        Self::Lf
     }
 }
 
@@ -267,9 +267,9 @@ impl LineEndingOption {
     /// Convert to the buffer's LineEnding type
     pub fn to_line_ending(&self) -> crate::model::buffer::LineEnding {
         match self {
-            LineEndingOption::Lf => crate::model::buffer::LineEnding::LF,
-            LineEndingOption::Crlf => crate::model::buffer::LineEnding::CRLF,
-            LineEndingOption::Cr => crate::model::buffer::LineEnding::CR,
+            Self::Lf => crate::model::buffer::LineEnding::LF,
+            Self::Crlf => crate::model::buffer::LineEnding::CRLF,
+            Self::Cr => crate::model::buffer::LineEnding::CR,
         }
     }
 }
@@ -1045,7 +1045,7 @@ pub enum MenuItem {
         checkbox: Option<String>,
     },
     /// A submenu (for future extensibility)
-    Submenu { label: String, items: Vec<MenuItem> },
+    Submenu { label: String, items: Vec<Self> },
     /// A dynamic submenu whose items are generated at runtime
     /// The `source` field specifies what to generate (e.g., "themes")
     DynamicSubmenu { label: String, source: String },
@@ -1056,11 +1056,11 @@ pub enum MenuItem {
 impl MenuItem {
     /// Expand a DynamicSubmenu into a regular Submenu with generated items.
     /// Returns the original item if not a DynamicSubmenu.
-    pub fn expand_dynamic(&self) -> MenuItem {
+    pub fn expand_dynamic(&self) -> Self {
         match self {
-            MenuItem::DynamicSubmenu { label, source } => {
+            Self::DynamicSubmenu { label, source } => {
                 let items = Self::generate_dynamic_items(source);
-                MenuItem::Submenu {
+                Self::Submenu {
                     label: label.clone(),
                     items,
                 }
@@ -1070,7 +1070,7 @@ impl MenuItem {
     }
 
     /// Generate menu items for a dynamic source
-    pub fn generate_dynamic_items(source: &str) -> Vec<MenuItem> {
+    pub fn generate_dynamic_items(source: &str) -> Vec<Self> {
         match source {
             "copy_with_theme" => {
                 // Generate theme options from available themes
@@ -1079,7 +1079,7 @@ impl MenuItem {
                     .map(|theme_name| {
                         let mut args = HashMap::new();
                         args.insert("theme".to_string(), serde_json::json!(theme_name));
-                        MenuItem::Action {
+                        Self::Action {
                             label: theme_name.to_string(),
                             action: "copy_with_theme".to_string(),
                             args,
@@ -1089,7 +1089,7 @@ impl MenuItem {
                     })
                     .collect()
             }
-            _ => vec![MenuItem::Label {
+            _ => vec![Self::Label {
                 info: format!("Unknown source: {}", source),
             }],
         }
@@ -2456,10 +2456,10 @@ pub enum ConfigError {
 impl std::fmt::Display for ConfigError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ConfigError::IoError(msg) => write!(f, "IO error: {msg}"),
-            ConfigError::ParseError(msg) => write!(f, "Parse error: {msg}"),
-            ConfigError::SerializeError(msg) => write!(f, "Serialize error: {msg}"),
-            ConfigError::ValidationError(msg) => write!(f, "Validation error: {msg}"),
+            Self::IoError(msg) => write!(f, "IO error: {msg}"),
+            Self::ParseError(msg) => write!(f, "Parse error: {msg}"),
+            Self::SerializeError(msg) => write!(f, "Serialize error: {msg}"),
+            Self::ValidationError(msg) => write!(f, "Validation error: {msg}"),
         }
     }
 }
