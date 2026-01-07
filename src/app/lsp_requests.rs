@@ -1881,6 +1881,8 @@ impl Editor {
 
     /// Request semantic tokens for a specific buffer if supported and needed.
     pub(crate) fn maybe_request_semantic_tokens(&mut self, buffer_id: BufferId) {
+        return; // TODO: Re-enable semantic tokens
+
         // Avoid duplicate in-flight requests per buffer
         if self.semantic_tokens_in_flight.contains_key(&buffer_id) {
             return;
