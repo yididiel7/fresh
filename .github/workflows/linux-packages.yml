@@ -76,6 +76,7 @@ jobs:
           cargo deb --no-build --target ${{ matrix.target }}
 
       - name: Build .rpm package
+        working-directory: crates/fresh-editor
         run: |
           cargo generate-rpm --target ${{ matrix.target }}
 
@@ -84,7 +85,7 @@ jobs:
           mkdir -p packages
           # Find and copy deb package
           find target/${{ matrix.target }}/debian -name "*.deb" -exec cp {} packages/ \;
-          # Find and copy rpm package
+          # Find and copy rpm package (symlink makes it end up in workspace target)
           find target/${{ matrix.target }}/generate-rpm -name "*.rpm" -exec cp {} packages/ \;
           ls -la packages/
 

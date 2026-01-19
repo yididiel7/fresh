@@ -192,9 +192,9 @@ jobs:
     uses: ./.github/workflows/musl-builds.yml
     secrets: inherit
 
-  # Build Linux packages (.deb, .rpm)
+  # Build Linux packages (.deb, .rpm) - builds from source, can run in parallel
   build-linux-packages:
-    needs: [plan, build]
+    needs: [plan]
     if: ${{ needs.plan.outputs.publishing == 'true' }}
     uses: ./.github/workflows/linux-packages.yml
     secrets: inherit
