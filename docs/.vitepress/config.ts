@@ -29,7 +29,7 @@ export default defineConfig({
 
     sidebar: [
       {
-        items: [{ text: "Getting Started", link: "/index" },{text:"internal", link: "/internal"}],
+        items: [{ text: "Getting Started", link: "/index" }],
       },
       {
         text: "User Guide",
@@ -63,6 +63,8 @@ export default defineConfig({
           { text: "Architecture", link: "/development/architecture" },
           { text: "Plugin API", link: "/development/plugin-api" },
           { text: "Plugin Development", link: "/development/plugin-development" },
+          { text: "QuickJS Migration", link: "/quickjs-migration" },
+          { text: "WASM Compatibility", link: "/WASM_COMPATIBILITY_ANALYSIS" },
         ],
       },
       {
@@ -76,6 +78,31 @@ export default defineConfig({
           { text: "Visual Layout", link: "/design/visual-layout" },
           { text: "Internationalization", link: "/design/i18n" },
           { text: "Search Next Occurrence", link: "/design/search-next-occurrence" },
+          { text: "Finder Abstraction", link: "/design/finder-abstraction" },
+        ],
+      },
+      {
+        text: "Internal",
+        collapsed: true,
+        items: [
+          { text: "Overview", link: "/internal/" },
+          { text: "Plugin Architecture", link: "/internal/PLUGIN_ARCHITECTURE_PLAN" },
+          { text: "Event Dispatch", link: "/internal/EVENT_DISPATCH_ARCHITECTURE" },
+          { text: "I/O Separation", link: "/internal/IO_SEPARATION_PLAN" },
+          { text: "Plugin Usability", link: "/internal/PLUGIN_USABILITY_REVIEW" },
+          { text: "Settings Indicator", link: "/internal/SETTINGS_MODIFIED_INDICATOR_DESIGN" },
+          { text: "Theme Consolidation", link: "/internal/theme-consolidation-plan" },
+          { text: "Config Implementation", link: "/internal/CONFIG_IMPLEMENTATION_PLAN" },
+          { text: "Config Design", link: "/internal/CONFIG_DESIGN" },
+          { text: "Input Calibration", link: "/internal/INPUT_CALIBRATION_WIZARD" },
+          { text: "Diff View", link: "/internal/DIFF_VIEW" },
+          { text: "Theme Usability", link: "/internal/theme-usability-improvements" },
+          { text: "Bulk Edit Optimization", link: "/internal/bulk-edit-optimization" },
+          { text: "Warning Notifications", link: "/internal/WARNING_NOTIFICATION_UX" },
+          { text: "Theme User Flows", link: "/internal/theme-user-flows" },
+          { text: "Code Quality", link: "/internal/CR" },
+          { text: "Markdown Mode", link: "/internal/MARKDOWN" },
+          { text: "TimeSource Design", link: "/internal/TIMESOURCE_DESIGN" },
         ],
       },
     ],
