@@ -2229,3 +2229,180 @@ fn test_f3_continues_searching_after_buffer_modification() {
         cursor_second
     );
 }
+
+/// Test searching for double underscores (common in Python __init__, __name__, etc.)
+#[test]
+fn test_search_double_underscore() {
+    let temp_dir = TempDir::new().unwrap();
+    let file_path = temp_dir.path().join("test.py");
+
+    // Create a Python file with double underscores
+    let content = "def __init__(self):\n    self.__name__ = 'test'\n    __special__ = True\n";
+    std::fs::write(&file_path, content).unwrap();
+
+    let mut harness = EditorTestHarness::new(80, 24).unwrap();
+    harness.open_file(&file_path).unwrap();
+    harness.render().unwrap();
+
+    // Trigger search with Ctrl+F
+    harness
+        .send_key(KeyCode::Char('f'), KeyModifiers::CONTROL)
+        .unwrap();
+    harness.render().unwrap();
+
+    // Search for __init__
+    harness.type_text("__init__").unwrap();
+    harness.render().unwrap();
+
+    // Confirm search
+    harness
+        .send_key(KeyCode::Enter, KeyModifiers::NONE)
+        .unwrap();
+    harness.process_async_and_render().unwrap();
+
+    // Should find the match (cursor moves to position of "__init__")
+    let cursor_pos = harness.cursor_position();
+    // "__init__" starts at position 4 (after "def ")
+    assert_eq!(
+        cursor_pos, 4,
+        "Should find '__init__' at position 4, got {}",
+        cursor_pos
+    );
+
+    // Status bar should show match found ("Found 1 match" format)
+    let screen = harness.screen_to_string();
+    assert!(
+        screen.contains("Found 1 match") || screen.contains("Found 1"),
+        "Should show match found. Screen:\n{}",
+        screen
+    );
+}
+
+/// Test searching for just double underscore (__)
+#[test]
+fn test_search_double_underscore_prefix() {
+    let temp_dir = TempDir::new().unwrap();
+    let file_path = temp_dir.path().join("test.py");
+
+    // Create a file with multiple double underscores
+    let content = "__init__, __name__, __file__\n";
+    std::fs::write(&file_path, content).unwrap();
+
+    let mut harness = EditorTestHarness::new(80, 24).unwrap();
+    harness.open_file(&file_path).unwrap();
+    harness.render().unwrap();
+
+    // Search for just "__"
+    harness
+        .send_key(KeyCode::Char('f'), KeyModifiers::CONTROL)
+        .unwrap();
+    harness.render().unwrap();
+    harness.type_text("__").unwrap();
+    harness.render().unwrap();
+
+    // Confirm search
+    harness
+        .send_key(KeyCode::Enter, KeyModifiers::NONE)
+        .unwrap();
+    harness.process_async_and_render().unwrap();
+
+    // Should find the first match at position 0
+    let cursor_pos = harness.cursor_position();
+    assert_eq!(
+        cursor_pos, 0,
+        "Should find first '__' at position 0, got {}",
+        cursor_pos
+    );
+
+    // Status bar should show multiple matches (6 instances of __)
+    // Note: status bar may truncate, so just check for "Found 6"
+    let screen = harness.screen_to_string();
+    assert!(
+        screen.contains("Found 6"),
+        "Should find 6 instances of '__'. Screen:\n{}",
+        screen
+    );
+}
+
+/// Test searching for angle bracket (common in generics like Vec<T>)
+#[test]
+fn test_search_angle_bracket() {
+    let temp_dir = TempDir::new().unwrap();
+    let file_path = temp_dir.path().join("test.rs");
+
+    // Create a Rust file with angle brackets
+    let content = "let x: Vec<String> = Vec::new();\nlet y: Option<i32> = None;\n";
+    std::fs::write(&file_path, content).unwrap();
+
+    let mut harness = EditorTestHarness::new(80, 24).unwrap();
+    harness.open_file(&file_path).unwrap();
+    harness.render().unwrap();
+
+    // Search for "Vec<"
+    harness
+        .send_key(KeyCode::Char('f'), KeyModifiers::CONTROL)
+        .unwrap();
+    harness.render().unwrap();
+    harness.type_text("Vec<").unwrap();
+    harness.render().unwrap();
+
+    // Confirm search
+    harness
+        .send_key(KeyCode::Enter, KeyModifiers::NONE)
+        .unwrap();
+    harness.process_async_and_render().unwrap();
+
+    // Should find the match - "Vec<" starts at position 7 (after "let x: ")
+    let cursor_pos = harness.cursor_position();
+    assert_eq!(
+        cursor_pos, 7,
+        "Should find 'Vec<' at position 7, got {}",
+        cursor_pos
+    );
+}
+
+/// Test searching for closing angle bracket with type
+#[test]
+fn test_search_with_closing_angle_bracket() {
+    let temp_dir = TempDir::new().unwrap();
+    let file_path = temp_dir.path().join("test.rs");
+
+    // Create content with generic types
+    let content = "plugin_name<T>\nplugin_name<U>\n";
+    std::fs::write(&file_path, content).unwrap();
+
+    let mut harness = EditorTestHarness::new(80, 24).unwrap();
+    harness.open_file(&file_path).unwrap();
+    harness.render().unwrap();
+
+    // Search for "plugin_name<"
+    harness
+        .send_key(KeyCode::Char('f'), KeyModifiers::CONTROL)
+        .unwrap();
+    harness.render().unwrap();
+    harness.type_text("plugin_name<").unwrap();
+    harness.render().unwrap();
+
+    // Confirm search
+    harness
+        .send_key(KeyCode::Enter, KeyModifiers::NONE)
+        .unwrap();
+    harness.process_async_and_render().unwrap();
+
+    // Should find first match at position 0
+    let cursor_pos = harness.cursor_position();
+    assert_eq!(
+        cursor_pos, 0,
+        "Should find 'plugin_name<' at position 0, got {}",
+        cursor_pos
+    );
+
+    // Should show 2 matches
+    // Note: status bar may truncate, so just check for "Found 2"
+    let screen = harness.screen_to_string();
+    assert!(
+        screen.contains("Found 2"),
+        "Should find 2 instances of 'plugin_name<'. Screen:\n{}",
+        screen
+    );
+}
