@@ -65,8 +65,8 @@ The `examples/` directory contains educational examples demonstrating specific A
 ## Plugin Development
 
 For plugin development guides, see:
-- **Getting Started:** [`docs/PLUGIN_DEVELOPMENT.md`](../docs/PLUGIN_DEVELOPMENT.md)
-- **API Reference:** [`docs/plugin-api.md`](../docs/plugin-api.md)
+- **Getting Started:** [`docs/development/plugin-development.md`](../docs/development/plugin-development.md)
+- **API Reference:** [`docs/development/plugin-api.md`](../docs/development/plugin-api.md)
 - **Examples:** [`examples/README.md`](examples/README.md)
 - **Clangd Plugin:** [`clangd_support.md`](clangd_support.md)
 
