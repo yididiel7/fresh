@@ -80,9 +80,9 @@ jobs:
             /^arch=/ {
               print
               print ""
-              print "source_x86_64=(\"https://github.com/sinelaw/fresh/releases/download/v" ver "/fresh-editor-x86_64-unknown-linux-gnu.tar.xz\""
+              print "source_x86_64=(\"fresh-editor-" ver "-x86_64.tar.xz::https://github.com/sinelaw/fresh/releases/download/v" ver "/fresh-editor-x86_64-unknown-linux-gnu.tar.xz\""
               print "             \"https://raw.githubusercontent.com/sinelaw/fresh/master/LICENSE\")"
-              print "source_aarch64=(\"https://github.com/sinelaw/fresh/releases/download/v" ver "/fresh-editor-aarch64-unknown-linux-gnu.tar.xz\""
+              print "source_aarch64=(\"fresh-editor-" ver "-aarch64.tar.xz::https://github.com/sinelaw/fresh/releases/download/v" ver "/fresh-editor-aarch64-unknown-linux-gnu.tar.xz\""
               print "               \"https://raw.githubusercontent.com/sinelaw/fresh/master/LICENSE\")"
               print ""
               print "sha256sums_x86_64=(\"" sha_x86_64 "\""
