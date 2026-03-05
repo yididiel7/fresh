@@ -1,5 +1,65 @@
 # Release Notes
 
+## 0.2.13
+
+### Features
+
+* **Inline Diagnostics**: Diagnostic text displayed at end of lines, right-aligned, with version-aware staleness dropping. Disabled by default — enable "diagnostics inline text" in the Settings UI (#1175).
+
+* **Hanging Line Wrap**: Wrapped continuation lines preserve the indentation of their parent logical line (#1169).
+
+* **Theme Editor Redesign**: Virtual scrolling, mouse support, flicker-free inline styling. New "Inspect Theme at Cursor" command and Ctrl+Right-Click theme info popup.
+
+* **Open File Jump**: `path:line[:col]` syntax in Open File prompt and Quick Open (#1081, #1149).
+
+### Improvements
+
+* **Plugin API**: `registerHandler()` replacing `globalThis` pattern, `restartLspForLanguage`, process-limits for `registerLspServer`, async `reloadGrammars()`. Strict TypeScript across all plugins.
+
+* **Load Plugin from Buffer**: Run and hot-reload plugins directly from an open buffer, with LSP support for plugin dev buffers.
+
+* **Status Bar Toggle**: Command palette command and config option to show/hide the status bar.
+
+* **LSP Environment Variables**: Pass environment variables to LSP server binaries via config (#1159).
+
+* **LSP Language ID Overrides**: Configurable `language_id_overrides` in LSP server config.
+
+* **Rust LSP Mode Switching**: Command palette action to switch between Full and Reduced Memory modes for rust-analyzer.
+
+* **Signature Help Rendering**: Markdown rendering for signature help popups with hanging indent and paragraph spacing.
+
+* **Non-Blocking Grammar Builds**: `SyntaxSet::build()` moved to a background thread. Buffered input events drained before render for CPU-constrained responsiveness.
+
+* Disabled LSP start/restart commands for languages without LSP config (#1168).
+
+### Bug Fixes
+
+* **LSP Bracket Paths**: Fixed LSP failing for file paths containing `[` or `]` (#953).
+
+* **Search F3 Navigation**: Fixed F3 losing matches after viewport scroll (#1155).
+
+* **Settings JSON Copy**: Fixed Ctrl+C not working in settings JSON editor (#1159).
+
+* **Line Numbers on New Files**: Fixed line numbers showing when disabled in settings for newly opened files (#1181).
+
+* **Client/Server Paste**: Fixed bracketed paste mode and terminal feature parity in client/server sessions (#1168).
+
+* **Popup Selection**: Fixed popup text selection copying wrong text when lines wrap (#1170).
+
+* **Suggestions Popup Border**: Fixed bottom border overwritten by status bar (#1174).
+
+* **TSX/JSX Language ID**: Fixed wrong `languageId` sent to LSP for TSX/JSX files (#1174).
+
+* **LSP Error Suppression**: Suppress ContentModified/ServerCancelled errors per LSP spec instead of logging as errors.
+
+* **Semantic Tokens**: Skip degraded semantic token responses to preserve syntax highlighting.
+
+* **Theme Save**: Fixed save failing when themes directory doesn't exist (#1180). Fixed saving incomplete theme files.
+
+* **LSP Completion**: Fixed completion debounce, cleanup-on-disable, and popup positioning issues.
+
+---
+
 ## 0.2.12
 
 ### Features
